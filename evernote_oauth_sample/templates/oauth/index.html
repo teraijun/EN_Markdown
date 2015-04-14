@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<div id="content">
+		<p> <a v-attr="href: response.redirect_url" v-text="response.msg"></a> to Evernote.</p>
+		<div class="editor_box">
+			<div class="input_box">
+				<p>Markdown</p>
+				<textarea id="input_area" v-model="input"></textarea>
+			</div>
+			<div id="result">
+				<p>Preview</p>
+				<div v-html="input | marked"></div>
+			</div>
+		</div>
+		<div class="clip_box" v-show="response.status='redirect'" v-transition>
+			<button id="clip">Clip to Evernote</button>
+		</div>
+	</div>
+{% endblock %}
+
