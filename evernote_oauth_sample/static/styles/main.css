@@ -64,9 +64,9 @@ body {
 }
 
 /* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 1200px) {
   .container {
-    max-width: 730px;
+    max-width: 1140px;
   }
 
   /* Remove the padding we set earlier */
@@ -90,6 +90,22 @@ body {
 
 div#content{
   margin: 15px 0;
+}
+
+.title_box{
+  margin: 15px 0;
+}
+
+.title_box input{
+  width: 100%;
+  height: 56px;
+  line-height: 1.4;
+  font-size: 28px;
+  border: 1px solid #ddd;
+  margin-bottom: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
 }
 
 .editor_box{

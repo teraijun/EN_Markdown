@@ -3,6 +3,14 @@
 {% block content %}
 	<div id="content">
 		<p> <a v-attr="href: response.redirect_url" v-text="response.msg"></a> to Evernote.</p>
+		<ul id="notebooks">
+			<li v-repeat="n : response.notebooks">
+				<p v-attr="id: n.guid" v-text="n.name"></p>
+			</li>
+		</ul>
+		<div class="title_box">
+			<input id="title" placeholder="Title" autofocus="autofocus" />
+		</div>
 		<div class="editor_box">
 			<div class="input_box">
 				<p>Markdown</p>
@@ -10,11 +18,11 @@
 			</div>
 			<div id="result">
 				<p>Preview</p>
-				<div v-html="input | marked"></div>
+				<div id="body" v-html="input | marked"></div>
 			</div>
 		</div>
 		<div class="clip_box" v-show="response.status='redirect'" v-transition>
-			<button id="clip">Clip to Evernote</button>
+			<button id="clip" v-on="click: clip">Clip to Evernote</button>
 		</div>
 	</div>
 {% endblock %}

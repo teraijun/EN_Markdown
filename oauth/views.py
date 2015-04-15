@@ -1,9 +1,14 @@
 from evernote.api.client import EvernoteClient
-
+from evernote.api.client import Store
+from evernote.edam.type.ttypes import (
+    Note,
+)
+import evernote.edam.error.ttypes as Errors
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 import json
 import Cookie
 import os
@@ -28,6 +33,7 @@ def get_evernote_client(token=None):
 
 
 def index(request):
+    csrf_token = get_token(request)
     return render_to_response('oauth/index.html')
 
 
@@ -66,19 +72,20 @@ def login(request):
         if 'oauth_verifier' in request.GET:
             request.session['oauth_verifier'] = request.GET.get("oauth_verifier")
 
-
-            # access_token =client.get_access_token(
-            #     request.session['_evernote_oauth_token'],
-            #     request.session['_evernote_oauth_token_secret'],
-            #     request.GET.get("oauth_verifier", '')
-            # )
-
+            # access_token = client.get_access_token(
+            #      request.session['oauth_token'],
+            #      request.session['oauth_token_secret'],
+            #      request.session['oauth_verifier']
+            #  )
+            # client = EvernoteClient(token=access_token)
             # user_store = client.get_user_store()
             # user = user_store.getUser()
             # username = user.username
             # shard_id = user.shardId
             # privilege = user.privilege
             
+            # request.session['shard_id'] = shard_id
+
             # entity = Evernote(
             #     key_name=key_name,
             #     user_id=user.id,
@@ -102,29 +109,11 @@ def login(request):
         del request.session['_redirect_url']
         return redirect(redirect_uri)
 
-def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
-    token = oauth.Token(oauth_token, oauth_token_secret)
-    token.set_verifier(oauth_verifier)
-    client = _get_oauth_client(token)
 
-    resp, content = client.request(self._get_endpoint('oauth'), 'POST')
-    access_token = dict(urlparse.parse_qsl(content))
-    self.token = access_token['oauth_token']
-    return self.token
-
-def _get_oauth_client(self, token=None):
-    consumer = oauth.Consumer(self.consumer_key, self.consumer_secret)
-    if token:
-        client = oauth.Client(consumer, token)
-    else:
-        client = oauth.Client(consumer)
-    return client
-
-
-def callback(request):
+def get_info(request):
     try:
         client = get_evernote_client()
-        client.get_access_token(
+        request.session['access_token'] = client.get_access_token(
             request.session['oauth_token'],
             request.session['oauth_token_secret'],
             request.session['oauth_verifier']
@@ -133,7 +122,7 @@ def callback(request):
         return json_response_with_headers({
             'status': 'redirect',
             'redirect_url': '/login/',
-            'msg': 'Need to Login'
+            'msg': 'Login'
         })
 
     note_store = client.get_note_store()
@@ -143,10 +132,11 @@ def callback(request):
     if notebooks is not None:
         for note in notebooks:
             name = note.name
+            guid = note.guid
             notes.append({
-                'name': name
+                'name': name,
+                'guid': guid
             })
-
     return json_response_with_headers({
             'status': 'success',
             'redirect_url': '/logout/',
@@ -157,39 +147,67 @@ def callback(request):
 def reset(request):
     return redirect('/')
 
-def make_note(authToken, noteStore, noteTitle, noteBody, resources=[], parentNotebook=None):
-    """
-    Create a Note instance with title and body 
-    Send Note object to user's account
-    """
+def note(request):
+    request.token = request.session['access_token']
+    if 'title' in request.POST:
+        title = request.POST.get('title', '').encode('utf-8')
+    if 'body' in request.POST:
+        body = request.POST.get('body', '').encode('utf-8')
+    if 'resources' in request.POST:
+        resources = request.POST.get('resources', '')
+    if 'guid' in request.POST:
+        guid = request.POST.get('guid', '')
+    try:
+        note = make_note(request, title, body, resources, guid)
+        return json_response_with_headers({
+            'status': 'success',
+            'note': note
+        })
+    except Exception as e:
+        return json_response_with_headers({
+            'status': 'error',
+            'msg': 'parameter error',
+            'title': title,
+            'body': body,
+            'resources': resources,
+            'guid': guid,
+            'access_token': request.token,
+            'error': e.args
+        })
 
-    ourNote = Types.Note()
-    ourNote.title = noteTitle
 
+
+def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     ## Build body of note
+    body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    body += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+    body += "<en-note>%s</en-note>" % noteBody.encode('utf-8')
 
-    nBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    nBody += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
-    nBody += "<en-note>%s" % noteBody
-    if resources:
-        ### Add Resource objects to note body
-        nBody += "<br />" * 2
-        ourNote.resources = resources
-        for resource in resources:
-            hexhash = binascii.hexlify(resource.data.bodyHash)
-            nBody += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
-                (hexhash, resource.mime, hexhash)
-    nBody += "</en-note>"
+    ourNote = Note()
+    ourNote.title = noteTitle
+    ourNote.content = body
+    token = client.token
 
-    ourNote.content = nBody
+    # if resources:
+    #     ### Add Resource objects to note body
+    #     body += "<br />" * 2
+    #     note.resources = resources
+    #     for resource in resources:
+    #         hexhash = binascii.hexlify(resource.data.bodyHash)
+    #         body += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
+    #             (hexhash, resource.mime, hexhash)
+
 
     ## parentNotebook is optional; if omitted, default notebook is used
-    if parentNotebook and hasattr(parentNotebook, 'guid'):
-        ourNote.notebookGuid = parentNotebook.guid
+    # if parentNotebook and hasattr(parentNotebook, 'guid'):
+    ourNote.notebookGuid = guid
 
     ## Attempt to create note in Evernote account
+
     try:
-        note = noteStore.createNote(authToken, ourNote)
+        client = get_evernote_client(token=token)
+        note_store = client.get_note_store()
+        note = note_store.createNote(token, ourNote)
     except Errors.EDAMUserException, edue:
         ## Something was wrong with the note data
         ## See EDAMErrorCode enumeration for error code explanation
@@ -201,7 +219,14 @@ def make_note(authToken, noteStore, noteTitle, noteBody, resources=[], parentNot
         print "EDAMNotFoundException: Invalid parent notebook GUID"
         return None
     ## Return created note object
-    return note
+    return {
+        'guid': note.guid,
+        'title': note.title,
+        # 'thumbnail': thumbnail,
+        'content': body,
+        'created': note.created,
+        'updated': note.updated,
+    }
 
 def json_response_with_headers(data, status=200):
     response_data = data
