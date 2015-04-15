@@ -4,7 +4,9 @@ new Vue({
   el: '#content',
   data: {
     input: '# hello',
-    response:{}
+    response:{},
+    clipped:{},
+    selected: ''
   },
   filters: {
     marked: marked
@@ -23,10 +25,10 @@ new Vue({
     },
     methods: {
       clip: function($e){
-      // アイテムがクリックされた時のハンドラ
+        var that = this;
         var title = $('#title').val();
         var body = $('#body').html().replace(/ id[^>]+/g, '');
-        var guid = $('#notebooks p').attr("id");
+        var guid = $('#notebooks option:selected').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({
           type: "POST",
@@ -43,6 +45,8 @@ new Vue({
           dataType: "json",
           success: function(response) {
             console.log(response);
+            that.$data.clipped = response;
+            $('#div-modal').modal();
           }
         });
       }

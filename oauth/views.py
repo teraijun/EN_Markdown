@@ -19,16 +19,21 @@ import urlparse
 
 EN_CONSUMER_KEY = 'junterai-0563'
 EN_CONSUMER_SECRET = '2af8adbdb0bd2f7b'
+sandbox = True
 
+if sandbox : 
+    link_to_en = 'https://sandbox.evernote.com/Home.action'
+else : 
+    link_to_en = 'https://www.evernote.com/Home.action'
 
 def get_evernote_client(token=None):
     if token:
-        return EvernoteClient(token=token, sandbox=True)
+        return EvernoteClient(token=token, sandbox=sandbox)
     else:
         return EvernoteClient(
             consumer_key=EN_CONSUMER_KEY,
             consumer_secret=EN_CONSUMER_SECRET,
-            sandbox=True
+            sandbox=sandbox
         )
 
 
@@ -122,6 +127,7 @@ def get_info(request):
         return json_response_with_headers({
             'status': 'redirect',
             'redirect_url': '/login/',
+            'home_url': link_to_en,
             'msg': 'Login'
         })
 
@@ -141,6 +147,7 @@ def get_info(request):
             'status': 'success',
             'redirect_url': '/logout/',
             'msg': 'Logout',
+            'home_url': link_to_en,
             'notebooks': notes
     })
 
@@ -244,3 +251,6 @@ def get_hostname():
     except:
         HOSTNAME = 'localhost:8000'
     return HOSTNAME
+
+def is_localhost():
+    return 'HTTP_HOST' not in os.environ or os.environ['HTTP_HOST'].startswith("localhost")
