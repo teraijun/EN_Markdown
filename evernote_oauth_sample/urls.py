@@ -11,4 +11,5 @@ urlpatterns = patterns(
     url(r"^reset/$", "oauth.views.reset", name="evernote_auth_reset"),
     url(r"^note/$", "oauth.views.note", name="evernote_note"),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^polls/', include('polls.urls')),
 )

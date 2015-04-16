@@ -9,6 +9,7 @@ from django.shortcuts import render_to_response
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
+from django.conf import settings
 import json
 import Cookie
 import os
@@ -17,8 +18,6 @@ import oauth2 as oauth
 import urllib
 import urlparse
 
-EN_CONSUMER_KEY = 'junterai-0563'
-EN_CONSUMER_SECRET = '2af8adbdb0bd2f7b'
 sandbox = True
 
 if sandbox : 
@@ -31,8 +30,8 @@ def get_evernote_client(token=None):
         return EvernoteClient(token=token, sandbox=sandbox)
     else:
         return EvernoteClient(
-            consumer_key=EN_CONSUMER_KEY,
-            consumer_secret=EN_CONSUMER_SECRET,
+            consumer_key=settings.EN_CONSUMER_KEY,
+            consumer_secret=settings.EN_CONSUMER_SECRET,
             sandbox=sandbox
         )
 
@@ -51,11 +50,8 @@ def auth(request):
             redirect_uri = request.session['_redirect_url']
             del request.session['_redirect_url']
             return redirect(redirect_uri)
-        return redirect(url_for('/'))
     except Exception as e:
-        # callbackUrl = 'http://%s/login/' % (get_hostname())
-        callbackUrl = 'http://localhost:8000/login/'
-        client = get_evernote_client()
+        callbackUrl = 'http://%s/login/' % (get_hostname())
         request_token = client.get_request_token(callbackUrl)
 
     # Save the request token information for later
@@ -140,11 +136,9 @@ def get_info(request):
     notes = [];
     if notebooks is not None:
         for note in notebooks:
-            name = note.name
-            guid = note.guid
             notes.append({
-                'name': name,
-                'guid': guid
+                'name': note.name,
+                'guid': note.guid
             })
     return json_response_with_headers({
             'status': 'success',
@@ -256,10 +250,10 @@ def logout(request):
         return redirect(url)
 
 def get_hostname():
-    try:
-        HOSTNAME = socket.gethostname()
-    except:
+    if 'local' in socket.gethostname():
         HOSTNAME = 'localhost:8000'
+    else:
+        HOSTNAME = socket.gethostname()
     return HOSTNAME
 
 def is_localhost():

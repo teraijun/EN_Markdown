@@ -10,11 +10,12 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(PROJECT_DIR, 'UserInfo.db'),                      # Or path to database file if using sqlite3.
+        'NAME': os.path.join(BASE_DIR, 'UserInfo.db'),                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -63,8 +64,6 @@ STATIC_ROOT = ''
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
-
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -120,7 +119,8 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(BASE_DIR, 'templates')
+    os.path.join(BASE_DIR, 'templates'),
+    os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), 'polls.templates'),
 )
 
 INSTALLED_APPS = (
@@ -137,6 +137,9 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
 )
+
+EN_CONSUMER_KEY = 'junterai-0563'
+EN_CONSUMER_SECRET = '2af8adbdb0bd2f7b'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
