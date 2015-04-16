@@ -27,7 +27,7 @@ new Vue({
       clip: function($e){
         var that = this;
         var title = $('#title').val();
-        var body = $('#body').html().replace(/ id[^>]+/g, '');
+        var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>');
         var guid = $('#notebooks option:selected').val();
         var csrftoken = getCookie('csrftoken');
         $.ajax({

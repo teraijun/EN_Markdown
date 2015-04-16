@@ -134,6 +134,9 @@ def get_info(request):
     note_store = client.get_note_store()
     notebooks = note_store.listNotebooks()
 
+    user_store = client.get_user_store()
+    user_info = user_store.getUser()
+
     notes = [];
     if notebooks is not None:
         for note in notebooks:
@@ -148,7 +151,8 @@ def get_info(request):
             'redirect_url': '/logout/',
             'msg': 'Logout',
             'home_url': link_to_en,
-            'notebooks': notes
+            'notebooks': notes,
+            'username': user_info.username
     })
 
 def reset(request):
@@ -166,9 +170,15 @@ def note(request):
         guid = request.POST.get('guid', '')
     try:
         note = make_note(request, title, body, resources, guid)
-        return json_response_with_headers({
-            'status': 'success',
-            'note': note
+        if note :
+            return json_response_with_headers({
+                'status': 'success',
+                'note': note
+            })
+        else :
+            return json_response_with_headers({
+            'status': 'error',
+            'msg': 'note is null'
         })
     except Exception as e:
         return json_response_with_headers({
@@ -188,7 +198,7 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     ## Build body of note
     body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
     body += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
-    body += "<en-note>%s</en-note>" % noteBody.encode('utf-8')
+    body += "<en-note>%s</en-note>" % noteBody
 
     ourNote = Note()
     ourNote.title = noteTitle
@@ -254,3 +264,6 @@ def get_hostname():
 
 def is_localhost():
     return 'HTTP_HOST' not in os.environ or os.environ['HTTP_HOST'].startswith("localhost")
+
+def make_unicode(value):
+    value = unicode(value, "utf-8")

@@ -2,9 +2,10 @@
 
 {% block content %}
 	<div id="content">
-		<div id="en_status">
-			<p> <a v-attr="href: response.redirect_url" v-text="response.msg"></a> to Evernote.</p>
-			<select id="notebooks" v-show="response.status!='redirect'" v-transition v-model="selected">
+		<a class="auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
+		<div id="en_status" v-show="response.status!='redirect'">
+			<h4 v-text="'Hello, '+response.username"></h4>
+			<select id="notebooks" v-transition v-model="selected">
 				<option v-repeat="n: response.notebooks" v-attr="value: n.guid" v-text="n.name"></option>
 			</select>
 		</div>
@@ -24,7 +25,6 @@
 		<div class="clip_box" v-show="response.status!='redirect'" v-transition>
 			<button id="clip" v-on="click: clip">Clip to Evernote</button>
 		</div>
-		<a v-attr="href: response.home_url" target='_blank'>Link to Evernote</a>
 
 		<div id="div-modal" class="modal fade">
 			<div class="modal-dialog">
@@ -34,9 +34,10 @@
 						<h4 class="modal-title">Clip Success!</h4>
 					</div>
 					<div class="modal-body">
-						<h2>Title:<p v-text="clipped.note.title"></p></h2>
+						<p v-text="clipped.note.title"></p>
 					</div>
 					<div class="modal-footer">
+						<a v-attr="href: response.home_url" target='_blank'>Link to Evernote</a>
 						<button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
 					</div>
 				</div>

@@ -107,7 +107,11 @@ div#content{
   padding-bottom: 10px;
   padding-left: 10px;
 }
-
+.auth{
+  display: block;
+  font-size: 20px;
+  margin: 15px 0;
+}
 .editor_box{
   display: box;
   display: -moz-box;
@@ -183,4 +187,9 @@ div.clip_box button#clip{
   border: none;
   padding: 10px 15px;
   border-radius: 4px;
+}
+
+.modal-footer a{
+  display: inline-block;
+  margin-right: 15px;
 }
