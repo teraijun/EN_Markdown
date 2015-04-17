@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
+from cms.models import User
 import json
 import Cookie
 import os
@@ -73,34 +74,25 @@ def login(request):
         if 'oauth_verifier' in request.GET:
             request.session['oauth_verifier'] = request.GET.get("oauth_verifier")
 
-            # access_token = client.get_access_token(
-            #      request.session['oauth_token'],
-            #      request.session['oauth_token_secret'],
-            #      request.session['oauth_verifier']
-            #  )
-            # client = EvernoteClient(token=access_token)
-            # user_store = client.get_user_store()
-            # user = user_store.getUser()
-            # username = user.username
-            # shard_id = user.shardId
-            # privilege = user.privilege
+            access_token = client.get_access_token(
+                  request.session['oauth_token'],
+                  request.session['oauth_token_secret'],
+                  request.session['oauth_verifier']
+              )
+            request.session['access_token'] = access_token
+            client = EvernoteClient(token=access_token)
+            user_store = client.get_user_store()
+            user = user_store.getUser()
+            username = user.username
+            shard_id = user.shardId
+            privilege = user.privilege
             
-            # request.session['shard_id'] = shard_id
+            request.session['shard_id'] = shard_id
 
-            # entity = Evernote(
-            #     key_name=key_name,
-            #     user_id=user.id,
-            #     shard_id=shard_id,
-            #     username=username,
-            #     privilege=privilege,
-            #     access_token=access_token)
-            # entity.put()
-            # # model = auth_model_class(
-            #     key_name=key_name,
-            #     evernote=entity,
-            # )
-            # auth_model_class.insert_or_update(model)
-
+            u = User(
+                user_id=user.id,
+                access_token=access_token)
+            u.save()
         else :
             return redirect('/auth/')
     except Exception as e:
@@ -113,12 +105,8 @@ def login(request):
 
 def get_info(request):
     try:
-        client = get_evernote_client()
-        request.session['access_token'] = client.get_access_token(
-            request.session['oauth_token'],
-            request.session['oauth_token_secret'],
-            request.session['oauth_verifier']
-        )
+        print request.session['access_token']
+        client = get_evernote_client(token=request.session['access_token'])
     except KeyError:
         return json_response_with_headers({
             'status': 'redirect',

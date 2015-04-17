@@ -1,0 +1,22 @@
+{% extends "cms/base.html" %}
+{% load bootstrap %}
+
+{% block title %}User Edit{% endblock title %}
+
+{% block content %}
+    <h3 class="page-header">書籍の編集</h3>
+    {% if user_id %}
+    <form action="/cms/user/mod/{{ user.user_id }}" method="post" class="form-horizontal" role="form">
+    {% else %}
+    <form action="/cms/user/add/" method="post" class="form-horizontal" role="form">
+    {% endif %}
+      {% csrf_token %}
+      {{ form|bootstrap_horizontal }}
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <button type="submit" class="btn btn-primary">送信</button>
+        </div>
+      </div>
+    </form>
+    <a href="/cms/user/" class="btn btn-default btn-sm">戻る</a>
+{% endblock content %}

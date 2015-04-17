@@ -1,0 +1,39 @@
+{% extends "cms/base.html" %}
+
+{% block title %}User List{% endblock title %}
+
+{% block extrahead %}
+<style>
+table {
+  margin-top: 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+    <h3 class="page-header">User List</h3>
+    <a href="/cms/user/add/" class="btn btn-default btn-sm">Add</a>
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>user_id</th>
+          <th>access_token</th>
+          <th>edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.user_id }}</td>
+          <td>{{ user.access_token }}</td>
+          <td>
+            <a href="/cms/user/mod/{{ user.user_id }}" class="btn btn-default btn-sm">Edit</a>
+            <a href="/cms/user/del/{{ user.user_id }}" class="btn btn-default btn-sm">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% endblock content %}
