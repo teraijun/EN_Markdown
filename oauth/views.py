@@ -10,7 +10,6 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
-from django.contrib.sites.models import Site
 from cms.models import User
 import json
 import Cookie
@@ -53,7 +52,7 @@ def auth(request):
             del request.session['_redirect_url']
             return redirect(redirect_uri)
     except Exception as e:
-        callbackUrl = 'http://%s/login/' % (get_hostname())
+        callbackUrl = 'http://%s/login/' % (request.get_host())
         request_token = client.get_request_token(callbackUrl)
 
     # Save the request token information for later
@@ -239,15 +238,6 @@ def logout(request):
     if 'callback' in request.GET:
         url = request.GET.get('callback').decode("utf-8")
         return redirect(url)
-
-def get_hostname():
-    current_site = Site.objects.get_current()
-    if 'example.com' in current_site.domain :
-        HOSTNAME = 'localhost:8000'
-    else:
-        HOSTNAME = current_site
-    print HOSTNAME
-    return HOSTNAME
 
 def is_localhost():
     return 'HTTP_HOST' not in os.environ or os.environ['HTTP_HOST'].startswith("localhost")

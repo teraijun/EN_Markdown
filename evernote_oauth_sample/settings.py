@@ -130,7 +130,6 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites.models',
     'oauth',
     'cms',
     # Uncomment the next line to enable the admin:

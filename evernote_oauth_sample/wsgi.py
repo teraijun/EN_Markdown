@@ -1,29 +1,18 @@
-"""
-WSGI config for evernote_oauth_sample project.
-
-This module contains the WSGI application used by Django's development server
-and any production WSGI deployments. It should expose a module-level variable
-named ``application``. Django's ``runserver`` and ``runfcgi`` commands discover
-this application via the ``WSGI_APPLICATION`` setting.
-
-Usually you will have the standard Django WSGI application here, but it also
-might make sense to replace the whole Django WSGI application with a custom one
-that later delegates to the Django one. For example, you could introduce WSGI
-middleware here, or combine a Django application with an application of another
-framework.
-
-"""
+# -*- coding: utf-8 -*-
 import os
+import site
+import sys
 
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE", "evernote_oauth_sample.settings")
+# virtualenvのパッケージパス
+site.addsitedir("/home/ec2-user/ENV/lib/python2.7/site-packages")
 
-# This application object is used by any WSGI server configured to use this
-# file. This includes Django's development server, if the WSGI_APPLICATION
-# setting points here.
+sys.path.append('/var/www/cgi-bin/EN_Markdown')
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "evernote_oauth_sample.settings")
+
+# virtualenvの実行コードのパス
+activate_env = os.path.expanduser("/home/ec2-user/ENV/bin/activate_this.py")
+execfile(activate_env, dict(__file__=activate_env))
+
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
-
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)
