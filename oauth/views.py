@@ -225,6 +225,8 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
         'content': body,
         'created': note.created,
         'updated': note.updated,
+        'link_to_en_notebook': link_to_en
+#        'link_to_en_notebook': link_to_en+'#n='+note.guid+'&ses=4&sh=1&sds=5&'
     }
 
 def json_response_with_headers(data, status=200):
