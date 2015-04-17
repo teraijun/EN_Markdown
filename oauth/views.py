@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
+from django.contrib.sites.models import Site
 from cms.models import User
 import json
 import Cookie
@@ -240,10 +241,12 @@ def logout(request):
         return redirect(url)
 
 def get_hostname():
-    if 'local' in socket.gethostname():
+    current_site = Site.objects.get_current()
+    if 'example.com' in current_site.domain :
         HOSTNAME = 'localhost:8000'
     else:
-        HOSTNAME = socket.gethostname()
+        HOSTNAME = current_site
+    print HOSTNAME
     return HOSTNAME
 
 def is_localhost():
