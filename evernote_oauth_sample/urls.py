@@ -7,6 +7,7 @@ urlpatterns = patterns(
     url(r"^$", "oauth.views.index", name="evernote_index"),
     url(r"^auth/$", "oauth.views.auth", name="evernote_auth"),
     url(r"^login/$", "oauth.views.login", name="evernote_login"),
+    url(r"^logout/$", "oauth.views.logout", name="evernote_logout"),
     url(r"^info/$", "oauth.views.get_info", name="evernote_info"),
     url(r"^reset/$", "oauth.views.reset", name="evernote_auth_reset"),
     url(r"^note/$", "oauth.views.note", name="evernote_note"),

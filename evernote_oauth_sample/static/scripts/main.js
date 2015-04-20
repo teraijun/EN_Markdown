@@ -19,7 +19,7 @@ new Vue({
         dataType: "json",
         success: function(response) {
           that.$data.response = response;
-          if (that.$data.response.status == 'redirect') that.$data.response.redirect_url = response.redirect_url+'?callback='+encodeURIComponent(window.location.href);
+          that.$data.response.redirect_url = response.redirect_url+'?callback='+encodeURIComponent(window.location.href);
         }
       });
     },

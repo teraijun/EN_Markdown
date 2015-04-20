@@ -44,16 +44,8 @@ def index(request):
 
 def auth(request):
     client = get_evernote_client()
-    try:
-        user_store = client.get_user_store()
-        user_store.getUser()
-        if '_redirect_url' in request.session:
-            redirect_uri = request.session['_redirect_url']
-            del request.session['_redirect_url']
-            return redirect(redirect_uri)
-    except Exception as e:
-        callbackUrl = 'http://%s/login/' % (request.get_host())
-        request_token = client.get_request_token(callbackUrl)
+    callbackUrl = 'http://%s/login/' % (request.get_host())
+    request_token = client.get_request_token(callbackUrl)
 
     # Save the request token information for later
     request.session['oauth_token'] = request_token['oauth_token']
