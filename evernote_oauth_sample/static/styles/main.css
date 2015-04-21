@@ -141,15 +141,19 @@ div#content{
   box-flex:1.0;
   display: block;
 }
-.input_box textarea{
+.input_area_all{
   height: 500px;
-  padding: 5px;
-  width: 100%;
   border-top-right-radius: 0;
   border-top-left-radius: 3px;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 3px;
-  border-color: #ddd;  
+  border: 1px solid #ddd;
+}
+.input_box textarea{
+  height: 440px;
+  padding: 5px;
+  width: 100%;
+  border: none;
 }
 
 #result{
@@ -192,4 +196,23 @@ div.clip_box button#clip{
 .modal-footer a{
   display: inline-block;
   margin-right: 15px;
+}
+.add_filebtn-group{
+  border-top: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+.add_filebtn-group p{
+  display: inline-block;
+}
+
+.add_filebtn-group button{
+  padding: 5px 30px;
+  background: #eee;
+  color: #999;
+  border: none;
+}
+
+input[type="file"] {
+  display: none;
 }

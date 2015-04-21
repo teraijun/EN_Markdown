@@ -1,8 +1,9 @@
 from evernote.api.client import EvernoteClient
 from evernote.api.client import Store
 from evernote.edam.type.ttypes import (
-    Note,
+    Note
 )
+import evernote.edam.type.ttypes as Types
 import evernote.edam.error.ttypes as Errors
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -18,6 +19,12 @@ import socket
 import oauth2 as oauth
 import urllib
 import urlparse
+
+
+import clipboard
+from io import BytesIO
+import hashlib
+import binascii
 
 sandbox = True
 
@@ -38,7 +45,7 @@ def get_evernote_client(token=None):
 
 def index(request):
     csrf_token = get_token(request)
-    response = render_to_response('oauth/index.html')
+    response = render_to_response('index.html')
     return response
 
 def callback(request):
@@ -163,7 +170,39 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     ## Build body of note
     body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
     body += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
-    body += "<en-note>%s</en-note>" % noteBody
+    body += "<en-note>%s" % noteBody
+
+
+    # img = clipboard.get_image()
+    # if img is not None:
+    #     print 'Attaching image in clipboard...'
+    #     buffer = BytesIO()
+    #     img.save(buffer, 'png')
+    #     image_data = buffer.getvalue()
+    #     md5 = hashlib.md5()
+    #     md5.update(image_data)
+    #     hash = md5.digest()
+    #     data = Types.Data()
+    #     data.size = len(image_data)
+    #     data.bodyHash = hash
+    #     data.body = image_data
+    #     resource = Types.Resource()
+    #     resource.mime = 'image/png'
+    #     resource.data = data
+    #     # Now, add the new Resource to the note's list of resources
+    #     note.resources = [resource]
+    #     # To display the Resource as part of the note's content, include an
+    #     # <en-media> tag in the note's ENML content. The en-media tag identifies
+    #     # the corresponding resource using the MD5 hash.
+    #     hash_hex = binascii.hexlify(hash)
+    #     # The content of an Evernote note is represented using Evernote Markup
+    #     # Language (ENML). The full ENML specification can be found in the Evernote
+    #     # API Overview at
+
+    #     body +='<p>Here is the attached image:</p><br/>'
+    #     body += '<en-media type="image/png" hash="' + hash_hex + '"/>'
+
+    body += "</en-note>"
 
     ourNote = Note()
     ourNote.title = noteTitle
@@ -179,12 +218,7 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     #         body += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
     #             (hexhash, resource.mime, hexhash)
 
-
-    ## parentNotebook is optional; if omitted, default notebook is used
-    # if parentNotebook and hasattr(parentNotebook, 'guid'):
     ourNote.notebookGuid = guid
-
-    ## Attempt to create note in Evernote account
 
     try:
         client = get_evernote_client(token=token)

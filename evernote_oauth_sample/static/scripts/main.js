@@ -1,57 +1,110 @@
 "use strict";
 
-new Vue({
-  el: '#content',
-  data: {
-    input: '# hello',
-    response:{},
-    clipped:{},
-    selected: ''
-  },
-  filters: {
-    marked: marked
-  },
-  created: function() {
-    var that = this;
-      $.ajax({
-        type: "GET",
-        url: "/info/",
-        dataType: "json",
-        success: function(response) {
-          that.$data.response = response;
-          that.$data.response.redirect_url = response.redirect_url+'?callback='+encodeURIComponent(window.location.href);
-        }
-      });
+$(function(){
+  new Vue({
+    el: '#content',
+    data: {
+      input: '# hello',
+      response:{},
+      clipped:{},
+      selected: ''
     },
-    methods: {
-      clip: function($e){
-        var that = this;
-        var title = $('#title').val();
-        var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>');
-        var guid = $('#notebooks option:selected').val();
-        var csrftoken = getCookie('csrftoken');
+    filters: {
+      marked: marked
+    },
+    created: function() {
+      var that = this;
         $.ajax({
-          type: "POST",
-          beforeSend: function(xhr, settings){
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-          },
-          data: {
-            'title': title,
-            'body': body,
-            'resources': '',
-            'guid': guid
-          },
-          url: "/note/",
+          type: "GET",
+          url: "/info/",
           dataType: "json",
           success: function(response) {
-            console.log(response);
-            that.$data.clipped = response;
-            $('#div-modal').modal();
+            that.$data.response = response;
+            that.$data.response.redirect_url = response.redirect_url+'?callback='+encodeURIComponent(window.location.href);
           }
         });
+        $('.input_area_all').bind('drop', function(e){
+            // デフォルトの挙動を停止
+            e.preventDefault();
+         
+            // ファイル情報を取得
+            var files = e.originalEvent.dataTransfer.files;
+         
+            that.uploadFiles(files);
+         
+          }).bind('dragenter', function(){
+            // デフォルトの挙動を停止
+            return false;
+          }).bind('dragover', function(){
+            // デフォルトの挙動を停止
+            return false;
+          });
+      },
+      methods: {
+        clip: function($e){
+          var that = this;
+          var title = $('#title').val();
+          var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>');
+          var guid = $('#notebooks option:selected').val();
+          var csrftoken = getCookie('csrftoken');
+          var resources = that.resources || '';
+          $.ajax({
+            type: "POST",
+            beforeSend: function(xhr, settings){
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            data: {
+              'title': title,
+              'body': body,
+              'resources': resources,
+              'guid': guid
+            },
+            url: "/note/",
+            dataType: "json",
+            success: function(response) {
+              console.log(response);
+              that.$data.clipped = response;
+              $('#div-modal').modal();
+            }
+          });
+        },
+        scroll:function(e){
+          var height = $(e.target).scrollTop();
+          $("#result div").scrollTop(height);        
+        },
+        uploadTrigger:function(){
+          $('input[type="file"]').click();          
+        },
+        uploadInput:function(e){
+          var files = e.target.files;
+          this.uploadFiles(files);
+        },
+        uploadFiles:function(files){
+          var that = this;
+          var fd = new FormData();
+ 
+          var filesLength = files.length;
+ 
+          for (var i = 0; i < filesLength; i++) {
+            fd.append("files[]", files[i]);
+          }
+          that.resources = fd;
+          console.log('ファイルがアップロードされました。');
+          // $.ajax({
+          //   url: 'アップロード処理をするファイルのパス',
+          //   type: 'POST',
+          //   data: fd,
+          //   processData: false,
+          //   contentType: false,
+          //   success: function(data) {
+          //   }
+          // });
+        }
       }
-    }
+  });
+
 });
+
 
 function getCookie(name) {
     var cookieValue = null;
@@ -68,8 +121,3 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
-$('#input_area').scroll(function(){
-  var height = $(this).scrollTop();
-  $("#result div").scrollTop(height);
-});
