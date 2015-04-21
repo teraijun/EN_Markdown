@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
+from django.contrib.sessions.backends.db import SessionStore
 from cms.models import User
 import json
 import Cookie
@@ -19,7 +20,10 @@ import oauth2 as oauth
 import urllib
 import urlparse
 
+from copy import copy, deepcopy
+
 sandbox = True
+s = SessionStore()
 
 if sandbox : 
     link_to_en = 'https://sandbox.evernote.com/Home.action'
@@ -41,59 +45,50 @@ def index(request):
     csrf_token = get_token(request)
     return render_to_response('oauth/index.html')
 
-
-def auth(request):
+def callback(request):
     client = get_evernote_client()
-    callbackUrl = 'http://%s/login/' % (request.get_host())
-    request_token = client.get_request_token(callbackUrl)
+    if 'oauth_verifier' in request.GET:
+        oauth_verifier = request.GET.get("oauth_verifier")
+        access_token = client.get_access_token(
+            s['oauth_token'],
+            s['oauth_token_secret'],
+            oauth_verifier
+        )
+        request.session['access_token'] = access_token
+        client = EvernoteClient(token=access_token)
+        user_store = client.get_user_store()
+        user = user_store.getUser()
+        username = user.username
+        shard_id = user.shardId
+        privilege = user.privilege
 
-    # Save the request token information for later
-    request.session['oauth_token'] = request_token['oauth_token']
-    request.session['oauth_token_secret'] = request_token['oauth_token_secret']
+        request.session['shard_id'] = shard_id
+
+        u = User(
+            user_id=user.id,
+            access_token=access_token)
+        u.save()
 
     # Redirect the user to the Evernote authorization URL
-    return redirect(client.get_authorize_url(request_token))
-
+    try:
+        callbackUrl = request.session['_redirect_url']
+        del request.session['_redirect_url']
+    except Exception as e :
+        callbackUrl = 'http://%s/' % (request.get_host())
+    return redirect(callbackUrl)
 
 def login(request):
     if 'callback' in request.GET:
-        request.session['_redirect_url'] = request.GET.get('callback').decode("utf-8")
-    elif not request.session['_redirect_url'] :
-        request.session['_redirect_url'] = 'http://www.nikkei.com'
+        callbackUrl = request.GET.get('callback').decode("utf-8")+'callback/'
+    else :
+        callbackUrl = 'http://www.nikkei.com/'
+    client = get_evernote_client()
+    request_token = client.get_request_token(callbackUrl)
 
-    try:
-        client = get_evernote_client()
-        if 'oauth_verifier' in request.GET:
-            request.session['oauth_verifier'] = request.GET.get("oauth_verifier")
-
-            access_token = client.get_access_token(
-                  request.session['oauth_token'],
-                  request.session['oauth_token_secret'],
-                  request.session['oauth_verifier']
-              )
-            request.session['access_token'] = access_token
-            client = EvernoteClient(token=access_token)
-            user_store = client.get_user_store()
-            user = user_store.getUser()
-            username = user.username
-            shard_id = user.shardId
-            privilege = user.privilege
-            
-            request.session['shard_id'] = shard_id
-
-            u = User(
-                user_id=user.id,
-                access_token=access_token)
-            u.save()
-        else :
-            return redirect('/auth/')
-    except Exception as e:
-        return redirect('http://www.google.com/')
-    if '_redirect_url' in request.session:
-        redirect_uri = request.session['_redirect_url']
-        del request.session['_redirect_url']
-        return redirect(redirect_uri)
-
+    s['oauth_token'] = request_token['oauth_token']
+    s['oauth_token_secret'] = request_token['oauth_token_secret']
+    s.save()
+    return redirect(client.get_authorize_url(request_token))
 
 def get_info(request):
     try:
