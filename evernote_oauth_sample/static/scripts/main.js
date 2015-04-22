@@ -29,9 +29,7 @@ $(function(){
          
             // ファイル情報を取得
             var files = e.originalEvent.dataTransfer.files;
-         
             that.uploadFiles(files);
-         
           }).bind('dragenter', function(){
             // デフォルトの挙動を停止
             return false;
@@ -82,11 +80,21 @@ $(function(){
         uploadFiles:function(files){
           var that = this;
           var fd = new FormData();
- 
           var filesLength = files.length;
- 
+          var width = $('#body').width() - 10;
           for (var i = 0; i < filesLength; i++) {
-            fd.append("files[]", files[i]);
+            var file = files[i];
+            fd.append("files[]", file);
+            if (file && (file.type && file.type.match(/^image/)
+                     || !file.type && file.name.match(/\.(jp[eg]+|png|gif|bmp)$/i))) {
+              var reader = new FileReader();
+              reader.onload = function (file, i) { return function () {
+                var input = $('#input_area').val();
+                var add = input + '!['+file.name+']('+this.result+' "'+file.name+'")';
+                $('#input_area').val(add);
+              }}(file, i);
+              reader.readAsDataURL(file);
+            }
           }
           that.resources = fd;
           console.log('ファイルがアップロードされました。');

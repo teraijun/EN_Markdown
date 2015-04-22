@@ -20,8 +20,6 @@ import oauth2 as oauth
 import urllib
 import urlparse
 
-
-import clipboard
 from io import BytesIO
 import hashlib
 import binascii

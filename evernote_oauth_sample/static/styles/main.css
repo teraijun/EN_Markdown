@@ -170,7 +170,7 @@ div#content{
   box-flex:1.0;
   display: block;
 }
-#result div{
+#result div#body{
   border: 1px solid #ddd;
   border-left: none;
   height: 500px;
@@ -215,4 +215,11 @@ div.clip_box button#clip{
 
 input[type="file"] {
   display: none;
+}
+.img_div{
+  text-align: center;
+}
+img.thumb {
+    margin:0 5px 5px 0;
+    vertical-align:bottom;
 }

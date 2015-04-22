@@ -18,7 +18,7 @@
 				<div class="input_area_all">
 					<textarea id="input_area" v-model="input" v-on="scroll: scroll"></textarea>
 					<div class="add_filebtn-group">
-					 	<input type="file" multiple="multiple" v-on="change: uploadInput">
+					 	<input id="image_input" type="file" multiple="multiple" v-on="change: uploadInput">
 						<button id="add_file" v-on="click: uploadTrigger">Drop to Upload Or Add file</button>
 					</div>
 				</div>
