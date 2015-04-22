@@ -24,6 +24,9 @@ from io import BytesIO
 import hashlib
 import binascii
 
+import cgi
+import re
+
 sandbox = True
 
 if sandbox : 
@@ -135,7 +138,9 @@ def note(request):
     if 'body' in request.POST:
         body = request.POST.get('body', '').encode('utf-8')
     if 'resources' in request.POST:
+        print 'resources'
         resources = request.POST.get('resources', '')
+        query = cgi.FieldStorage()
     if 'guid' in request.POST:
         guid = request.POST.get('guid', '')
     try:

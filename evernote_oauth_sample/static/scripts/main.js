@@ -42,8 +42,8 @@ $(function(){
       methods: {
         clip: function($e){
           var that = this;
-          var title = $('#title').val();
-          var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>');
+          var title = $('#title').val() || 'Untitled';
+          var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>').replace(/(<img[^>]+>)/,'$1</img>');
           var guid = $('#notebooks option:selected').val();
           var csrftoken = getCookie('csrftoken');
           var resources = that.resources || '';
@@ -62,8 +62,10 @@ $(function(){
             dataType: "json",
             success: function(response) {
               console.log(response);
-              that.$data.clipped = response;
-              $('#div-modal').modal();
+              if (response.status != 'error'){
+                that.$data.clipped = response;
+                $('#div-modal').modal();
+              }
             }
           });
         },
@@ -97,19 +99,9 @@ $(function(){
           }
           that.resources = fd;
           console.log('ファイルがアップロードされました。');
-          // $.ajax({
-          //   url: 'アップロード処理をするファイルのパス',
-          //   type: 'POST',
-          //   data: fd,
-          //   processData: false,
-          //   contentType: false,
-          //   success: function(data) {
-          //   }
-          // });
         }
       }
   });
-
 });
 
 
