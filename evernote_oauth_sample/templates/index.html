@@ -25,7 +25,16 @@
 			</div>
 			<div id="result">
 				<p>Preview</p>
-				<div id="body" v-html="input | marked"></div>
+				<div id="output">
+					<div id="body" v-html="input | marked"></div>
+					<div id="attached_files">
+						<p>Attached Files</p>
+						<figure v-repeat="a: attached_files">
+							<img v-attr="src: a.result, alt: a.name" />
+							<figcaption v-text="a.name"></figcaption>
+						</figure>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="clip_box" v-show="response.status!='redirect'" v-transition>

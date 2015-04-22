@@ -170,7 +170,7 @@ div#content{
   box-flex:1.0;
   display: block;
 }
-#result div#body{
+#result div#output{
   border: 1px solid #ddd;
   border-left: none;
   height: 500px;
@@ -179,6 +179,10 @@ div#content{
   border-top-left-radius: 0;
   border-bottom-right-radius: 3px;
   border-bottom-left-radius: 0;
+  overflow: scroll;
+}
+#result div#body{
+  height: 75%;
   overflow: scroll;
 }
 div.clip_box{
@@ -216,10 +220,22 @@ div.clip_box button#clip{
 input[type="file"] {
   display: none;
 }
-.img_div{
-  text-align: center;
+#attached_files{
+  border-top: 1px solid #ddd;
+  height: 25%;
+  overflow: scroll;
 }
-img.thumb {
-    margin:0 5px 5px 0;
-    vertical-align:bottom;
+#attached_files figure{
+  width: 30%;
+  display: inline-block;
+  vertical-align: top;
+}
+#attached_files img{
+  width: 90%;
+}
+#attached_files figcaption{
+  width: 90%;
+  word-wrap: break-word;
+  font-size: 12px;
+  margin-top: 3px;
 }

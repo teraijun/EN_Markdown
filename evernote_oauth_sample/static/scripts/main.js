@@ -7,7 +7,8 @@ $(function(){
       input: '# hello',
       response:{},
       clipped:{},
-      selected: ''
+      selected: '',
+      attached_files:[]
     },
     filters: {
       marked: marked
@@ -89,9 +90,7 @@ $(function(){
                      || !file.type && file.name.match(/\.(jp[eg]+|png|gif|bmp)$/i))) {
               var reader = new FileReader();
               reader.onload = function (file, i) { return function () {
-                var input = $('#input_area').val();
-                var add = input + '!['+file.name+']('+this.result+' "'+file.name+'")';
-                $('#input_area').val(add);
+                that.$data.attached_files.push({name: file.name, result: this.result});
               }}(file, i);
               reader.readAsDataURL(file);
             }
