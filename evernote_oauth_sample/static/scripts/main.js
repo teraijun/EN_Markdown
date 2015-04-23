@@ -52,14 +52,15 @@ $(function(){
             beforeSend: function(xhr, settings){
               xhr.setRequestHeader("X-CSRFToken", csrftoken);
             },
-            data: {
+            data: JSON.stringify({
               'title': title,
               'body': body,
               'resources': resources,
               'guid': guid
-            },
+            }),
             url: "/note/",
             dataType: "json",
+            processData: false,
             success: function(response) {
               console.log(response);
               if (response.status != 'error'){
@@ -82,22 +83,23 @@ $(function(){
         },
         uploadFiles:function(files){
           var that = this;
-          var fd = new FormData();
           var filesLength = files.length;
           var width = $('#body').width() - 10;
+          that.resources = [];
           for (var i = 0; i < filesLength; i++) {
             var file = files[i];
-            fd.append("files[]", file);
             if (file && (file.type && file.type.match(/^image/)
                      || !file.type && file.name.match(/\.(jp[eg]+|png|gif|bmp)$/i))) {
               var reader = new FileReader();
               reader.onload = function (file, i) { return function () {
-                that.$data.attached_files.push({name: file.name, result: this.result});
+                var obj = {name: file.name, result: this.result};
+                that.$data.attached_files.push(obj);
+                file.src = this.result;
+                that.resources.push(file);
               }}(file, i);
               reader.readAsDataURL(file);
-            }
+            }            
           }
-          that.resources = fd;
           console.log('ファイルがアップロードされました。');
         }
       }

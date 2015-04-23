@@ -11,6 +11,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
+from django.core import serializers
 from cms.models import User
 import json
 import Cookie
@@ -20,12 +21,11 @@ import oauth2 as oauth
 import urllib
 import urlparse
 
+
+from PIL import Image
 from io import BytesIO
 import hashlib
 import binascii
-
-import cgi
-import re
 
 sandbox = True
 
@@ -133,16 +133,21 @@ def reset(request):
 
 def note(request):
     request.token = request.COOKIES['access_token']
-    if 'title' in request.POST:
-        title = request.POST.get('title', '').encode('utf-8')
-    if 'body' in request.POST:
-        body = request.POST.get('body', '').encode('utf-8')
-    if 'resources' in request.POST:
-        print 'resources'
-        resources = request.POST.get('resources', '')
-        query = cgi.FieldStorage()
-    if 'guid' in request.POST:
-        guid = request.POST.get('guid', '')
+    data = json.loads(request.body)
+    if 'title' in data:
+        title = data['title'].encode("utf-8")
+    if 'body' in data:
+        body = data['body'].encode("utf-8")
+    if 'resources' in data:
+        resources = data['resources']
+    if 'guid' in data:
+        guid = data['guid']
+
+    # return json_response_with_headers({
+    #     'status': 'success',
+    #     'note': {'title': title, 'body': body, 'resources': resources, 'guid': guid}
+    # })
+
     try:
         note = make_note(request, title, body, resources, guid)
         if note :
@@ -167,8 +172,6 @@ def note(request):
             'error': e.args
         })
 
-
-
 def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     ## Build body of note
     body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -176,7 +179,36 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     body += "<en-note>%s" % noteBody
 
 
-    # img = clipboard.get_image()
+    ourNote = Note()
+    ourNote.title = noteTitle
+
+    if resources:
+        ### Add Resource objects to note body
+        body += "<br />" * 2
+        arr = []
+        for res in resources:
+            im = Image.open(res['src'])
+            buffer = BytesIO()
+            im.save(buffer, 'png')
+            image_data = buffer.getvalue()
+            md5 = hashlib.md5()
+            md5.update(image_data)
+            hash = md5.digest()
+            data = Types.Data()
+            data.size = len(image_data)
+            data.bodyHash = hash
+            data.body = image_data
+            resource = Types.Resource()
+            resource.mime = res['type']
+            resource.data = data
+            arr.append(resource)
+            hash_hex = binascii.hexlify(hash)
+
+            body += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
+                (hash_hex, resource.mime, hash_hex)
+        ourNote.resources = arr
+
+
     # if img is not None:
     #     print 'Attaching image in clipboard...'
     #     buffer = BytesIO()
@@ -207,8 +239,6 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
 
     body += "</en-note>"
 
-    ourNote = Note()
-    ourNote.title = noteTitle
     ourNote.content = body
     token = client.token
 
@@ -241,12 +271,11 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     return {
         'guid': note.guid,
         'title': note.title,
-        # 'thumbnail': thumbnail,
+        'resources': note.resources,
         'content': body,
         'created': note.created,
         'updated': note.updated,
         'link_to_en_notebook': link_to_en
-#        'link_to_en_notebook': link_to_en+'#n='+note.guid+'&ses=4&sh=1&sds=5&'
     }
 
 def json_response_with_headers(data, status=200):
