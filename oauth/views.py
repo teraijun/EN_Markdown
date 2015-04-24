@@ -21,11 +21,11 @@ import oauth2 as oauth
 import urllib
 import urlparse
 
-
 from PIL import Image
 from io import BytesIO
 import hashlib
 import binascii
+import pickle
 
 sandbox = True
 
@@ -133,21 +133,17 @@ def reset(request):
 
 def note(request):
     request.token = request.COOKIES['access_token']
-    data = json.loads(request.body)
-    if 'title' in data:
-        title = data['title'].encode("utf-8")
-    if 'body' in data:
-        body = data['body'].encode("utf-8")
-    if 'resources' in data:
-        resources = data['resources']
-    if 'guid' in data:
-        guid = data['guid']
 
-    # return json_response_with_headers({
-    #     'status': 'success',
-    #     'note': {'title': title, 'body': body, 'resources': resources, 'guid': guid}
-    # })
-
+    if 'title' in request.POST:
+        title = request.POST['title'].encode("utf-8")
+    if 'body' in request.POST:
+        body = request.POST['body'].encode("utf-8")
+    if 'files[]' in request.FILES:
+        resources = request.FILES.getlist("files[]")
+    else :
+        resources = []
+    if 'guid' in request.POST:
+        guid = request.POST['guid']
     try:
         note = make_note(request, title, body, resources, guid)
         if note :
@@ -182,24 +178,20 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     ourNote = Note()
     ourNote.title = noteTitle
 
-    if resources:
-        ### Add Resource objects to note body
-        body += "<br />" * 2
+    if len(resources) > 0:
         arr = []
+        body += "<br />" * 2
         for res in resources:
-            im = Image.open(res['src'])
-            buffer = BytesIO()
-            im.save(buffer, 'png')
-            image_data = buffer.getvalue()
+            im = res.read()
             md5 = hashlib.md5()
-            md5.update(image_data)
+            md5.update(im)
             hash = md5.digest()
             data = Types.Data()
-            data.size = len(image_data)
+            data.size = res.size
             data.bodyHash = hash
-            data.body = image_data
+            data.body = im
             resource = Types.Resource()
-            resource.mime = res['type']
+            resource.mime = res.content_type
             resource.data = data
             arr.append(resource)
             hash_hex = binascii.hexlify(hash)
@@ -208,49 +200,10 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
                 (hash_hex, resource.mime, hash_hex)
         ourNote.resources = arr
 
-
-    # if img is not None:
-    #     print 'Attaching image in clipboard...'
-    #     buffer = BytesIO()
-    #     img.save(buffer, 'png')
-    #     image_data = buffer.getvalue()
-    #     md5 = hashlib.md5()
-    #     md5.update(image_data)
-    #     hash = md5.digest()
-    #     data = Types.Data()
-    #     data.size = len(image_data)
-    #     data.bodyHash = hash
-    #     data.body = image_data
-    #     resource = Types.Resource()
-    #     resource.mime = 'image/png'
-    #     resource.data = data
-    #     # Now, add the new Resource to the note's list of resources
-    #     note.resources = [resource]
-    #     # To display the Resource as part of the note's content, include an
-    #     # <en-media> tag in the note's ENML content. The en-media tag identifies
-    #     # the corresponding resource using the MD5 hash.
-    #     hash_hex = binascii.hexlify(hash)
-    #     # The content of an Evernote note is represented using Evernote Markup
-    #     # Language (ENML). The full ENML specification can be found in the Evernote
-    #     # API Overview at
-
-    #     body +='<p>Here is the attached image:</p><br/>'
-    #     body += '<en-media type="image/png" hash="' + hash_hex + '"/>'
-
     body += "</en-note>"
 
     ourNote.content = body
     token = client.token
-
-    # if resources:
-    #     ### Add Resource objects to note body
-    #     body += "<br />" * 2
-    #     note.resources = resources
-    #     for resource in resources:
-    #         hexhash = binascii.hexlify(resource.data.bodyHash)
-    #         body += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
-    #             (hexhash, resource.mime, hexhash)
-
     ourNote.notebookGuid = guid
 
     try:

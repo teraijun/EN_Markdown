@@ -8,7 +8,8 @@ $(function(){
       response:{},
       clipped:{},
       selected: '',
-      attached_files:[]
+      attached_files:[],
+      fd:new FormData()
     },
     filters: {
       marked: marked
@@ -42,9 +43,9 @@ $(function(){
       methods: {
         clip: function($e){
           var that = this;
-          var title = $('#title').val() || 'Untitled';
-          var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>').replace(/(<img[^>]+>)/,'$1</img>');
-          var guid = $('#notebooks option:selected').val();
+          that.$data.fd.append('title', $('#title').val() || 'Untitled');
+          that.$data.fd.append('body', $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>').replace(/(<img[^>]+>)/,'$1</img>'));
+          that.$data.fd.append('guid', $('#notebooks option:selected').val());
           var csrftoken = getCookie('csrftoken');
           var resources = that.resources || '';
           $.ajax({
@@ -52,15 +53,11 @@ $(function(){
             beforeSend: function(xhr, settings){
               xhr.setRequestHeader("X-CSRFToken", csrftoken);
             },
-            data: JSON.stringify({
-              'title': title,
-              'body': body,
-              'resources': resources,
-              'guid': guid
-            }),
+            data: that.$data.fd,
             url: "/note/",
             dataType: "json",
             processData: false,
+            contentType:false,
             success: function(response) {
               console.log(response);
               if (response.status != 'error'){
@@ -84,8 +81,6 @@ $(function(){
         uploadFiles:function(files){
           var that = this;
           var filesLength = files.length;
-          var width = $('#body').width() - 10;
-          that.resources = [];
           for (var i = 0; i < filesLength; i++) {
             var file = files[i];
             if (file && (file.type && file.type.match(/^image/)
@@ -95,10 +90,10 @@ $(function(){
                 var obj = {name: file.name, result: this.result};
                 that.$data.attached_files.push(obj);
                 file.src = this.result;
-                that.resources.push(file);
               }}(file, i);
               reader.readAsDataURL(file);
-            }            
+              that.$data.fd.append('files[]', file);
+            }
           }
           console.log('ファイルがアップロードされました。');
         }
