@@ -89,7 +89,6 @@ $(function(){
               reader.onload = function (file, i) { return function () {
                 var obj = {name: file.name, result: this.result};
                 that.$data.attached_files.push(obj);
-                file.src = this.result;
               }}(file, i);
               reader.readAsDataURL(file);
               that.$data.fd.append('files[]', file);

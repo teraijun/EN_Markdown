@@ -12,6 +12,8 @@ from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
 from django.core import serializers
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from cms.models import User
 import json
 import Cookie
@@ -22,10 +24,10 @@ import urllib
 import urlparse
 
 from PIL import Image
-from io import BytesIO
+
 import hashlib
 import binascii
-import pickle
+from io import BytesIO
 
 sandbox = True
 
@@ -153,9 +155,9 @@ def note(request):
             })
         else :
             return json_response_with_headers({
-            'status': 'error',
-            'msg': 'note is null'
-        })
+                'status': 'error',
+                'msg': 'note is null'
+            })
     except Exception as e:
         return json_response_with_headers({
             'status': 'error',
@@ -179,26 +181,29 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     ourNote.title = noteTitle
 
     if len(resources) > 0:
-        arr = []
+        ourNote.resources = []
         body += "<br />" * 2
         for res in resources:
-            im = res.read()
-            md5 = hashlib.md5()
-            md5.update(im)
-            hash = md5.digest()
-            data = Types.Data()
-            data.size = res.size
-            data.bodyHash = hash
-            data.body = im
-            resource = Types.Resource()
-            resource.mime = res.content_type
-            resource.data = data
-            arr.append(resource)
-            hash_hex = binascii.hexlify(hash)
+            im = ContentFile(res.read())
+            buffer = BytesIO()
+            im.save(buffer, 'png')
+            # image_data = buffer.getvalue()
+            # print image_data
+            # md5 = hashlib.md5()
+            # md5.update(image_data)
+            # hash = md5.digest()
+            # data = Types.Data()
+            # data.size = res.size
+            # data.bodyHash = hash
+            # data.body = image_data
+            # resource = Types.Resource()
+            # resource.mime = res.content_type
+            # resource.data = data
+            # ourNote.resources.append(resource)
+            # hash_hex = binascii.hexlify(hash)
 
-            body += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
-                (hash_hex, resource.mime, hash_hex)
-        ourNote.resources = arr
+            # body += "Attachment with hash %s: <br /><en-media type=\"%s\" hash=\"%s\" /><br />" % \
+            #     (hash_hex, resource.mime, hash_hex)
 
     body += "</en-note>"
 
