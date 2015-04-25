@@ -1,6 +1,26 @@
 "use strict";
 
+var attached_files = [];
+
 $(function(){
+  marked.setOptions({
+    renderer: new marked.Renderer(),
+    gfm: true,
+    tables: true,
+    breaks: false,
+    pedantic: false,
+    sanitize: true,
+    smartLists: true,
+    smartypants: false
+  });
+
+  function marked2(str){
+    if (attached_files.length > 0){
+      _.each(attached_files, function(a){str=str.replace(a.id,a.result)});
+    }    
+    return marked(str);
+  }
+
   new Vue({
     el: '#content',
     data: {
@@ -8,11 +28,10 @@ $(function(){
       response:{},
       clipped:{},
       selected: '',
-      attached_files:[],
       fd:new FormData()
     },
     filters: {
-      marked: marked
+      marked: marked2
     },
     created: function() {
       var that = this;
@@ -87,14 +106,22 @@ $(function(){
                      || !file.type && file.name.match(/\.(jp[eg]+|png|gif|bmp)$/i))) {
               var reader = new FileReader();
               reader.onload = function (file, i) { return function () {
-                var obj = {name: file.name, result: this.result};
-                that.$data.attached_files.push(obj);
+                var input = $('#input_area');
+                var input_val = input.val();
+                var pos = input.caretPos();
+                var id = file.name+'_'+(new Date().getTime());
+                var insert = '\n\n !['+file.name+']('+id+' "'+file.name+'") \n\n';
+                input_val = input_val.substr(0,pos) + insert + input_val.substr(pos, input_val.length);
+                input.val(input_val);
+                var obj = {id:id, name: file.name, result: this.result};
+                attached_files.push(obj);
+                marked2(input_val);
               }}(file, i);
               reader.readAsDataURL(file);
               that.$data.fd.append('files[]', file);
             }
           }
-          console.log('ファイルがアップロードされました。');
+          console.log('アップロード');
         }
       }
   });
