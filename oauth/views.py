@@ -20,12 +20,8 @@ import socket
 import oauth2 as oauth
 import urllib
 import urlparse
-
-from PIL import Image
-from io import BytesIO
 import hashlib
 import binascii
-import pickle
 
 sandbox = True
 
@@ -174,7 +170,6 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
     body += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
     body += "<en-note>%s" % noteBody
 
-
     ourNote = Note()
     ourNote.title = noteTitle
 
@@ -208,20 +203,14 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
         note_store = client.get_note_store()
         note = note_store.createNote(token, ourNote)
     except Errors.EDAMUserException, edue:
-        ## Something was wrong with the note data
-        ## See EDAMErrorCode enumeration for error code explanation
-        ## http://dev.evernote.com/documentation/reference/Errors.html#Enum_EDAMErrorCode
         print "EDAMUserException:", edue
         return None
     except Errors.EDAMNotFoundException, ednfe:
-        ## Parent Notebook GUID doesn't correspond to an actual notebook
         print "EDAMNotFoundException: Invalid parent notebook GUID"
         return None
-    ## Return created note object
     return {
         'guid': note.guid,
         'title': note.title,
-        'resources': note.resources,
         'content': body,
         'created': note.created,
         'updated': note.updated,

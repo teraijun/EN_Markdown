@@ -123,7 +123,7 @@ $(function(){
                 input.val(input_val);
                 var obj = {id:id, name: file.name, result: this.result};
                 attached_files.push(obj);
-                marked2(input_val);
+                $('#body').html(marked2(input_val));
               }}(file, i);
               reader.readAsDataURL(file);
               that.$data.fd.append('files[]', file);
