@@ -17,7 +17,7 @@ $(function(){
   function marked2(str){
     if (attached_files.length > 0){
       _.each(attached_files, function(a){str=str.replace(a.id,a.result)});
-    }    
+    }
     return marked(str);
   }
 
@@ -63,7 +63,15 @@ $(function(){
         clip: function($e){
           var that = this;
           that.$data.fd.append('title', $('#title').val() || 'Untitled');
-          that.$data.fd.append('body', $('#body').html().replace(/ (id|class)[^>]+/g, '').replace('<hr>', '<hr></hr>').replace(/(<img[^>]+>)/,'$1</img>'));
+          var body = $('#body').html().replace(/ (id|class)[^>]+/g, '').replace(/(<hr>)/g, '$1</hr>').replace(/(<img[^>]+>)/g,'$1</img>');
+
+          _.each(attached_files, function(a){
+            var regexp = new RegExp('<img src[^ ]+ alt="'+a.name+'"[^>]+></img>', 'g');
+            var replace = '<p id="'+a.name+'"></p>';
+            body = body.replace(regexp, replace);
+          });
+
+          that.$data.fd.append('body', body);
           that.$data.fd.append('guid', $('#notebooks option:selected').val());
           var csrftoken = getCookie('csrftoken');
           var resources = that.resources || '';

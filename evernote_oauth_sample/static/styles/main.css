@@ -182,7 +182,6 @@ div#content{
   overflow: scroll;
 }
 #result div#body{
-  height: 75%;
   overflow: scroll;
 }
 div.clip_box{
@@ -220,22 +219,6 @@ div.clip_box button#clip{
 input[type="file"] {
   display: none;
 }
-#attached_files{
-  border-top: 1px solid #ddd;
-  height: 25%;
-  overflow: scroll;
-}
-#attached_files figure{
-  width: 30%;
-  display: inline-block;
-  vertical-align: top;
-}
-#attached_files img{
-  width: 90%;
-}
-#attached_files figcaption{
-    width: 90%;
-  word-wrap: break-word;
-  font-size: 12px;
-  margin-top: 3px;
+#body img{
+  max-width: 100%;
 }
