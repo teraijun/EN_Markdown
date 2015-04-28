@@ -99,7 +99,7 @@ def get_info(request):
             'status': 'redirect',
             'redirect_url': '/login/',
             'home_url': link_to_en,
-            'msg': 'Login'
+            'msg': 'Login to use'
         })
 
     note_store = client.get_note_store()

@@ -101,54 +101,29 @@ div#content{
   height: 56px;
   line-height: 1.4;
   font-size: 28px;
-  border: 1px solid #ddd;
+  border: none;
   margin-bottom: 0;
   padding-top: 10px;
   padding-bottom: 10px;
   padding-left: 10px;
+  color: #2dbe60;
+}
+.title_box input::-webkit-input-placeholder{ color: #2dbe60; }
+.title_box input:-moz-placeholder{
+    color: #2dbe60;
 }
 .auth{
   display: block;
   font-size: 20px;
   margin: 15px 0;
 }
-.editor_box{
-  display: box;
-  display: -moz-box;
-  display: -webkit-box;
-  display: -o-box;
-  display: -ms-box;
-  display: -ms-flexbox;
-  box-align: start;
-  -moz-box-align: start;
-  -webkit-box-align: start;
-  -o-box-align: start;
-  -ms-box-align: start;
-  width: 100%;
-}
 
 .input_box{
   width: 100%;
-  -moz-box-ordinal-group:1;
-  -webkit-box-ordinal-group:1;
-  -moz-box-ordinal-group:1;
-  -ms-box-ordinal-group:1;
-  box-ordinal-group:1;
-  -moz-box-flex:1.0;
-  -webkit-box-flex:1.0;
-  -o-box-flex:1.0;
-  -ms-box-flex:1.0;
-  box-flex:1.0;
   display: block;
-}
-.input_area_all{
   height: 500px;
-  border-top-right-radius: 0;
-  border-top-left-radius: 3px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 3px;
-  border: 1px solid #ddd;
 }
+
 .input_box textarea{
   height: 440px;
   padding: 5px;
@@ -201,16 +176,12 @@ div.clip_box button#clip{
   margin-right: 15px;
 }
 .add_filebtn-group{
-  border-top: 1px solid #ddd;
   padding: 10px;
   text-align: center;
 }
-.add_filebtn-group p{
-  display: inline-block;
-}
 
 .add_filebtn-group button{
-  padding: 5px 30px;
+  padding: 10px 30px;
   background: #eee;
   color: #999;
   border: none;

@@ -2,37 +2,36 @@
 
 {% block content %}
 	<div id="content">
-		<a class="auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
+		<div class="jumbotron">
+			<h1 v-text="'Hello, '+response.username" v-show="response.status!='redirect'"></h1>
+			<a class="auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
+		</div>
 		<div id="en_status" v-show="response.status!='redirect'">
-			<h4 v-text="'Hello, '+response.username"></h4>
 			<select id="notebooks" v-transition v-model="selected">
 				<option v-repeat="n: response.notebooks" v-attr="value: n.guid" v-text="n.name"></option>
 			</select>
 		</div>
 		<div class="title_box">
-			<input id="title" placeholder="Title" autofocus="autofocus" />
+			<input id="title" placeholder="Title your note" autofocus="autofocus" />
 		</div>
-		<div class="editor_box">
-			<div class="input_box">
-				<p>Markdown</p>
-				<div class="input_area_all">
-					<textarea id="input_area" v-model="input" v-on="scroll: scroll"></textarea>
-					<div class="add_filebtn-group">
-					 	<input id="image_input" type="file" multiple="multiple" v-on="change: uploadInput">
-						<button id="add_file" v-on="click: uploadTrigger">Drop to Upload Or Add file</button>
-					</div>
-				</div>
-			</div>
-			<div id="result">
-				<p>Preview</p>
-				<div id="output">
-					<div id="body" v-html="input | marked"></div>
-				</div>
+		<div class="input_box">
+			<textarea id="input_area" v-model="input" v-on="scroll: scroll"></textarea>
+			<div class="add_filebtn-group">
+			 	<input id="image_input" type="file" multiple="multiple" v-on="change: uploadInput">
+				<button id="add_file" v-on="click: uploadTrigger">Drop to Upload Or Add file</button>
 			</div>
 		</div>
 		<div class="clip_box" v-show="response.status!='redirect'" v-transition>
 			<button id="clip" v-on="click: clip">Clip to Evernote</button>
 		</div>
+
+		<div id="result" style="display:none">
+			<p>Preview</p>
+			<div id="output">
+				<div id="body" v-html="input | marked"></div>
+			</div>
+		</div>
+
 
 		<div id="div-modal" class="modal fade">
 			<div class="modal-dialog">
