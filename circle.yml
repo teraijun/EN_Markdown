@@ -1,0 +1,7 @@
+machine:
+  python:
+    version: 2.7.9
+
+dependencies:
+  override:
+    - sudo pip install -r requirements.txt
