@@ -3,43 +3,49 @@
 var Utils = function(){};
 
 Utils.prototype = {
-  attached_files: window.localStorage && window.localStorage.getItem('files') ? JSON.parse(window.localStorage.getItem('files')) : [],
+  attached_files: [],
   marked2: function(str){
     if (this.attached_files.length > 0){
-        _.each(this.attached_files, function(a){str=str.replace(a.id,a.result)});
+        _.each(this.attached_files, function(a){str=str.replace(a.id,a.src)});
       }
       return marked(str);
     },
 
-    store_title: function(str){
-      if(window.localStorage){
-        window.localStorage.setItem('title', str);
-      }
-      return str
-    },
-
-    store_body: function(str){
-      if(window.localStorage){
-        window.localStorage.setItem('body', str);
-      }
-      return str
-    },
-
-    getCookie: function(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-      return cookieValue;
+  store_title: function(str){
+    if(window.localStorage){
+      window.localStorage.setItem('title', str);
     }
+    return str
+  },
+
+  store_body: function(str){
+    var that = this;
+    if(window.localStorage){
+      var files = (new Utils).attached_files;
+      var strExceptImage = str;
+      _.each(files, function(f){
+        strExceptImage = strExceptImage.replace(new RegExp('!\\['+f.name+']\\('+f.id+' "'+f.name+'"\\)', 'g'), '')
+      });
+      window.localStorage.setItem('body', strExceptImage);
+    }
+    return str
+  },
+
+  getCookie: function(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie != '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = jQuery.trim(cookies[i]);
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+    return cookieValue;
+  }
 };
 
 function main(){
@@ -149,7 +155,9 @@ function main(){
             if (file && (file.type && file.type.match(/^image/)
                      || !file.type && file.name.match(/\.(jp[eg]+|png|gif|bmp)$/i))) {
               var reader = new FileReader();
-              reader.onload = function (file, i) { return function () {
+              reader.onload = function (file) { return function () {
+                //edit bynary string
+                var src = this.result;
                 var input = $('#input_area');
                 var input_val = that.$data.body;
                 var pos = input.caretPos();
@@ -158,14 +166,17 @@ function main(){
                 input_val = input_val.substr(0,pos) + insert + input_val.substr(pos, input_val.length);
                 input.val(input_val);
                 that.$data.body = input_val;
-                var obj = {id:id, name: file.name, result: this.result};
+                var obj = {id:id, name: file.name, src:src, type:file.type};
                 utils.attached_files.push(obj);
-                if(window.localStorage){
-                  window.localStorage.setItem('files', JSON.stringify(utils.attached_files));
-                }
-              }}(file, i);
+
+                // if(window.localStorage){
+                //   window.localStorage.setItem('files', JSON.stringify(utils.attached_files));
+                // }
+
+              }}(file);
               reader.readAsDataURL(file);
               that.$data.fd.append('files[]', file);
+
               console.log('upload');
             } else {
               console.log('upload only img file');
