@@ -4,19 +4,19 @@
 	<div id="content">
 		<div class="jumbotron">
 			<h1 v-text="'Hello, '+response.username" v-show="response.status!='redirect'"></h1>
-			<a class="auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
+			<a class="auth" v-on="click: auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
 		</div>
-		<div id="en_status" v-show="response.status!='redirect'">
+		<div class="items" v-show="response.status!='redirect'">
 			<select id="notebooks" v-transition v-model="selected">
 				<option v-repeat="n: response.notebooks" v-attr="value: n.guid" v-text="n.name"></option>
 			</select>
 			<button id="preview" class="btn" v-on="click: showPreview">Preview</button>
 		</div>
 		<div class="title_box">
-			<input id="title" placeholder="Title your note" autofocus="autofocus" />
+			<input id="title" placeholder="Title your note" v-model="title | store_title" autofocus="autofocus" />
 		</div>
 		<div class="input_box">
-			<textarea id="input_area" v-model="input" v-on="scroll: scroll" placeholder="Drag files here or just start typing in Markdown..."></textarea>
+			<textarea id="input_area" v-model="body | store_body" placeholder="Drag files here or just start typing in Markdown..."></textarea>
 			<div class="add_filebtn-group">
 			 	<input id="image_input" type="file" multiple="multiple" v-on="change: uploadInput">
 				<button id="add_file" v-on="click: uploadTrigger">Drop to Upload Or Add file</button>

@@ -190,7 +190,7 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
             resource.data = data
             ourNote.resources.append(resource)
             hash_hex = binascii.hexlify(hash)
-            insert = "%s<br /><en-media type=\"%s\" hash=\"%s\" /><br />" % (res.name, resource.mime, hash_hex)
+            insert = "<br /><en-media type=\"%s\" hash=\"%s\" /><br />" % (resource.mime, hash_hex)
             body = body.replace('<p id="'+res.name+'"></p>', insert)
     body += "</en-note>"
 

@@ -47,6 +47,7 @@ body {
 .jumbotron {
   text-align: center;
   border-bottom: 1px solid #e5e5e5;
+  padding: 10px 20px;
 }
 
 .jumbotron .btn {
@@ -120,7 +121,12 @@ div#content{
   font-size: 20px;
   margin: 15px 0;
 }
-
+.items{
+  text-align: right;
+}
+.items .btn{
+  margin-left: 15px;
+}
 .input_box{
   width: 100%;
   display: block;
