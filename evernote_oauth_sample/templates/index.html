@@ -3,7 +3,9 @@
 {% block content %}
 	<div id="content">
 		<div class="jumbotron">
-			<h1 v-text="'Hello, '+response.username" v-show="response.status!='redirect'"></h1>
+			<template v-if="response.username">
+				<h1 v-text="'Hello, '+response.username"></h1>
+			</template>
 			<a class="auth" v-on="click: auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
 		</div>
 		<div class="items" v-show="response.status!='redirect'">
@@ -22,11 +24,12 @@
 				<button id="add_file" v-on="click: uploadTrigger">Drop to Upload Or Add file</button>
 			</div>
 		</div>
-		<div class="clip_box" v-show="response.status!='redirect'" v-transition>
-			<button id="clip" class="btn" v-on="click: clip" data-toggle="popover" data-placement="top" data-content="" data-original-title="Save Success!">Save to Evernote</button>
-			<a v-attr="href: clipped.note.link_to_en_notebook" target='_blank'>Link to Evernote</a>			
-		</div>
-
+		<template v-if="response.status!='redirect'">
+			<div class="clip_box"v-transition>
+				<button id="clip" class="btn" v-on="click: clip" data-toggle="popover" data-placement="top" data-content="" data-original-title="Save Success!">Save to Evernote</button>
+				<a v-attr="href: clipped.note.link_to_en_notebook" target='_blank'>Link to Evernote</a>
+			</div>
+		</template>
 		<div id="div-modal" class="modal fade">
 			<div class="modal-dialog">
 				<div class="modal-content">

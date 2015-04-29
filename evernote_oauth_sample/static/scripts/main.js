@@ -76,7 +76,7 @@ function main(){
       store_title: utils.store_title,
       store_body: utils.store_body
     },
-    created: function() {
+    ready: function(){
       var that = this;
       $.ajax({
         type: "GET",
@@ -87,7 +87,9 @@ function main(){
           that.$data.response.redirect_url = response.redirect_url+'?callback='+encodeURIComponent(window.location.href);
         }
       });
-
+    },
+    created: function() {
+      var that = this;
       $('#input_area').bind('drop', function(e){
           // デフォルトの挙動を停止
           e.preventDefault();
