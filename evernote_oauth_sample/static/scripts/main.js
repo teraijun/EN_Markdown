@@ -3,7 +3,7 @@
 var Utils = function(){};
 
 Utils.prototype = {
-  attached_files: [],
+  attached_files: window.localStorage && window.localStorage.getItem('files') ? JSON.parse(window.localStorage.getItem('files')) : [],
   marked2: function(str){
     if (this.attached_files.length > 0){
         _.each(this.attached_files, function(a){str=str.replace(a.id,a.src)});
@@ -21,12 +21,7 @@ Utils.prototype = {
   store_body: function(str){
     var that = this;
     if(window.localStorage){
-      var files = (new Utils).attached_files;
-      var strExceptImage = str;
-      _.each(files, function(f){
-        strExceptImage = strExceptImage.replace(new RegExp('!\\['+f.name+']\\('+f.id+' "'+f.name+'"\\)', 'g'), '')
-      });
-      window.localStorage.setItem('body', strExceptImage);
+      window.localStorage.setItem('body', str);
     }
     return str
   },
@@ -119,6 +114,7 @@ function main(){
 
           that.$data.fd.append('body', body);
           that.$data.fd.append('guid', $('#notebooks option:selected').val());
+          that.$data.fd.append('files', JSON.stringify(utils.attached_files));
           $.ajax({
             type: "POST",
             beforeSend: function(xhr, settings){
@@ -168,17 +164,13 @@ function main(){
                 input_val = input_val.substr(0,pos) + insert + input_val.substr(pos, input_val.length);
                 input.val(input_val);
                 that.$data.body = input_val;
-                var obj = {id:id, name: file.name, src:src, type:file.type};
+                var obj = {id:id, name: file.name, src:src, type:file.type, size:file.size};
                 utils.attached_files.push(obj);
-
-                // if(window.localStorage){
-                //   window.localStorage.setItem('files', JSON.stringify(utils.attached_files));
-                // }
-
+                if(window.localStorage){
+                  window.localStorage.setItem('files', JSON.stringify(utils.attached_files));
+                }
               }}(file);
               reader.readAsDataURL(file);
-              that.$data.fd.append('files[]', file);
-
               console.log('upload');
             } else {
               console.log('upload only img file');
@@ -186,7 +178,9 @@ function main(){
           }
         },
         showPreview: function(){
-          $('#body').html(utils.marked2(this.$data.body));
+          var title = this.$data.title || 'Untitled';
+          $('#preview_title').html(utils.marked2(title));
+          $('#preview_body').html(utils.marked2(this.$data.body));
           $('#div-modal').modal();
         },
         auth: function(e){

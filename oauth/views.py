@@ -24,6 +24,7 @@ import hashlib
 import binascii
 from PIL import Image
 import io
+import cStringIO
 
 sandbox = True
 
@@ -136,8 +137,8 @@ def note(request):
         title = request.POST['title'].encode("utf-8")
     if 'body' in request.POST:
         body = request.POST['body'].encode("utf-8")
-    if 'files[]' in request.FILES:
-        resources = request.FILES.getlist("files[]")
+    if 'files' in request.POST:
+        resources = json.loads(request.POST["files"])
     else :
         resources = []
     if 'guid' in request.POST:
@@ -179,7 +180,10 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
         ourNote.resources = []
         body += "<br />" * 2
         for res in resources:
-            img = Image.open(res)
+            src = res['src']
+            file = cStringIO.StringIO(urllib.urlopen(src).read())
+            img = Image.open(file)
+            # img = Image.open(file).resize((120,120))
             output = io.BytesIO()
             img.save(output, format='png')
             im = output.getvalue()
@@ -187,16 +191,16 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
             md5.update(im)
             hash = md5.digest()
             data = Types.Data()
-            data.size = res.size
+            data.size = res['size']
             data.bodyHash = hash
             data.body = im
             resource = Types.Resource()
-            resource.mime = res.content_type
+            resource.mime = res['type']
             resource.data = data
             ourNote.resources.append(resource)
             hash_hex = binascii.hexlify(hash)
             insert = "<br /><en-media type=\"%s\" hash=\"%s\" /><br />" % (resource.mime, hash_hex)
-            body = body.replace('<p id="'+res.name+'"></p>', insert)
+            body = body.replace('<p id="'+res['name']+'"></p>', insert)
 
     body += "</en-note>"
 
