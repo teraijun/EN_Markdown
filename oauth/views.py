@@ -22,6 +22,8 @@ import urllib
 import urlparse
 import hashlib
 import binascii
+from PIL import Image
+import io
 
 sandbox = True
 
@@ -177,7 +179,10 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
         ourNote.resources = []
         body += "<br />" * 2
         for res in resources:
-            im = res.read()
+            img = Image.open(res)
+            output = io.BytesIO()
+            img.save(output, format='png')
+            im = output.getvalue()
             md5 = hashlib.md5()
             md5.update(im)
             hash = md5.digest()
@@ -192,6 +197,7 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
             hash_hex = binascii.hexlify(hash)
             insert = "<br /><en-media type=\"%s\" hash=\"%s\" /><br />" % (resource.mime, hash_hex)
             body = body.replace('<p id="'+res.name+'"></p>', insert)
+
     body += "</en-note>"
 
     ourNote.content = body
