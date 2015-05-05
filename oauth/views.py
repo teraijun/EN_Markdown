@@ -112,6 +112,7 @@ def get_info(request):
     user_info = user_store.getUser()
 
     notes = [];
+    print notebooks
     if notebooks is not None:
         for note in notebooks:
             notes.append({

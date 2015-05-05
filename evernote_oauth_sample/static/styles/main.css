@@ -141,7 +141,7 @@ div#content{
 }
 
 
-#body{
+#preview_body{
   overflow: scroll;
 }
 div.clip_box{
@@ -176,6 +176,6 @@ div.clip_box{
 input[type="file"] {
   display: none;
 }
-#body img{
+#preview_body img{
   max-width: 100%;
 }
