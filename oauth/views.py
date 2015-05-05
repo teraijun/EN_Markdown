@@ -89,6 +89,8 @@ def login(request):
     client = get_evernote_client()
     request_token = client.get_request_token(callbackUrl)
 
+    print request_token
+
     response = redirect(client.get_authorize_url(request_token))
     response.set_cookie('oauth_token', request_token['oauth_token'])
     response.set_cookie('oauth_token_secret', request_token['oauth_token_secret'])
