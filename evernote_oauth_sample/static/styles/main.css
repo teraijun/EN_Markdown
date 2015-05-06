@@ -135,6 +135,13 @@ div#content{
   margin-left: 5px;
   font-size: 18px;
 }
+.items .import_box{
+  display: inline-block;
+}
+.items .import_box .note_list{
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+}
 .items .btn{
   margin-left: 15px;
 }

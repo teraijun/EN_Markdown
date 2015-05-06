@@ -4,9 +4,11 @@ from evernote.api.client import Store
 from evernote.edam.type.ttypes import (
     Note
 )
+from evernote.edam.type.ttypes import NoteSortOrder
 import evernote.edam.type.ttypes as Types
 import evernote.edam.error.ttypes as Errors
 import evernote.edam.notestore.NoteStore as NoteStore
+
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.shortcuts import redirect
@@ -124,20 +126,7 @@ def get_info(request):
         })
     guid = notebooks[0].guid
     notebook = note_store.getNotebook(guid)
-    note_filter = NoteStore.NoteFilter()
-    note_filter.notebookGuid = guid
-
-    try :
-        a = note_store.findNotes(token, note_filter,0,10)
-        print a
-    except Errors.EDAMUserException, edue:
-        print "EDAMUserException:", edue
-        return None
-    except Errors.EDAMNotFoundException, ednfe:
-        print "EDAMNotFoundException: Invalid parent notebook GUID"
-        return None
-
-    return json_response_with_headers({
+    response = json_response_with_headers({
             'status': 'success',
             'redirect_url': '/logout/',
             'msg': 'Logout',
@@ -145,9 +134,58 @@ def get_info(request):
             'notebook': {'guid':notebook.guid, 'name':notebook.name},
             'username': user_info.username
     })
+    response.set_cookie('guid', guid)
+    return response
+
 
 def reset(request):
     return redirect('/')
+
+
+def import_note(request):
+    try :
+        token = request.COOKIES['access_token']
+        guid = request.COOKIES['guid']
+    except Exception as e:
+        return redirect('/login/')
+    client = get_evernote_client(token=token)
+    note_store = client.get_note_store()
+    note_filter = NoteStore.NoteFilter()
+    note_filter.notebookGuid = guid
+    note_filter.order = NoteSortOrder.UPDATED
+    notes = []
+
+    try :
+        noteList = note_store.findNotes(token, note_filter, 0, 10)
+        for n in noteList.notes:
+            content = note_store.getNoteContent(token, n.guid)
+            print content
+            notes.append({
+                "title": n.title,
+                "note_id": n.guid,
+                "updated": n.updated,
+                "content": content,
+                "resources": []
+            })
+
+    except Errors.EDAMUserException, edue:
+        print "EDAMUserException:", edue
+        return json_response_with_headers({
+            'status': 'error',
+            'msg': 'user permission error',
+        })
+    except Errors.EDAMNotFoundException, ednfe:
+        print "EDAMNotFoundException: Invalid parent notebook GUID"
+        return json_response_with_headers({
+            'status': 'error',
+            'msg': 'no find note',
+        })
+    return json_response_with_headers({
+        'status': 'success',
+        'msg': 'notes',
+        'notes': notes,
+    })
+
 
 def note(request):
     request.token = request.COOKIES['access_token']
