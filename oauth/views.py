@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from evernote.api.client import EvernoteClient
 from evernote.api.client import Store
 from evernote.edam.type.ttypes import (
@@ -5,6 +6,7 @@ from evernote.edam.type.ttypes import (
 )
 import evernote.edam.type.ttypes as Types
 import evernote.edam.error.ttypes as Errors
+import evernote.edam.notestore.NoteStore as NoteStore
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.shortcuts import redirect
@@ -50,6 +52,7 @@ def index(request):
 
 def callback(request):
     client = get_evernote_client()
+    access_token = ''
     if 'oauth_verifier' in request.GET:
         oauth_verifier = request.GET.get("oauth_verifier")
         access_token = client.get_access_token(
@@ -70,14 +73,14 @@ def callback(request):
             user_id=user.id,
             access_token=access_token)
         u.save()
-
     # Redirect the user to the Evernote authorization URL
     try:
         callbackUrl = request.COOKIES['_redirect_url']
     except Exception as e :
         callbackUrl = 'http://%s/' % (request.get_host())
     response = redirect(callbackUrl)
-    response.set_cookie('access_token', access_token)
+    if len(access_token) > 0 :
+        response.set_cookie('access_token', access_token)
     response.delete_cookie('_redirect_url')
     return response
 
@@ -88,17 +91,15 @@ def login(request):
         callbackUrl = 'http://www.nikkei.com/'
     client = get_evernote_client()
     request_token = client.get_request_token(callbackUrl)
-
-    print request_token
-
-    response = redirect(client.get_authorize_url(request_token))
+    response = redirect(client.get_authorize_url(request_token) + '&supportLinkedSandbox=true&suggestedNotebookName=Markdown')
     response.set_cookie('oauth_token', request_token['oauth_token'])
     response.set_cookie('oauth_token_secret', request_token['oauth_token_secret'])
     return response
 
 def get_info(request):
     try:
-        client = get_evernote_client(token=request.COOKIES['access_token'])
+        token = request.COOKIES['access_token']
+        client = get_evernote_client(token=token)
     except KeyError:
         return json_response_with_headers({
             'status': 'redirect',
@@ -106,27 +107,42 @@ def get_info(request):
             'home_url': link_to_en,
             'msg': 'Login to use'
         })
+    user_store = client.get_user_store()
+    user_info = user_store.getUser()
 
     note_store = client.get_note_store()
     notebooks = note_store.listNotebooks()
 
-    user_store = client.get_user_store()
-    user_info = user_store.getUser()
+    if len(notebooks) < 1 :
+        return json_response_with_headers({
+            'status': 'warning',
+            'redirect_url': '/logout/',
+            'msg': 'No Notebook',
+            'notebook': {},
+            'home_url': link_to_en,
+            'username': user_info.username
+        })
+    guid = notebooks[0].guid
+    notebook = note_store.getNotebook(guid)
+    note_filter = NoteStore.NoteFilter()
+    note_filter.notebookGuid = guid
 
-    notes = [];
-    print notebooks
-    if notebooks is not None:
-        for note in notebooks:
-            notes.append({
-                'name': note.name,
-                'guid': note.guid
-            })
+    try :
+        a = note_store.findNotes(token, note_filter,0,10)
+        print a
+    except Errors.EDAMUserException, edue:
+        print "EDAMUserException:", edue
+        return None
+    except Errors.EDAMNotFoundException, ednfe:
+        print "EDAMNotFoundException: Invalid parent notebook GUID"
+        return None
+
     return json_response_with_headers({
             'status': 'success',
             'redirect_url': '/logout/',
             'msg': 'Logout',
             'home_url': link_to_en,
-            'notebooks': notes,
+            'notebook': {'guid':notebook.guid, 'name':notebook.name},
             'username': user_info.username
     })
 

@@ -113,7 +113,7 @@ function main(){
           });
 
           that.$data.fd.append('body', body);
-          that.$data.fd.append('guid', $('#notebooks option:selected').val());
+          that.$data.fd.append('guid', $('.notebook').attr('id'));
           var send_files = _.filter(utils.attached_files, function(a){return body.indexOf(a.name)!=-1});
           that.$data.fd.append('files', JSON.stringify(send_files));
           $.ajax({

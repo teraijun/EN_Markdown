@@ -9,9 +9,7 @@
 			<a class="auth" v-on="click: auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
 		</div>
 		<div class="items" v-show="response.status!='redirect'">
-			<select id="notebooks" v-transition v-model="selected">
-				<option v-repeat="n: response.notebooks" v-attr="value: n.guid" v-text="n.name"></option>
-			</select>
+			<p class="notebook_line">Notebook: <span class="notebook" v-attr="id: response.notebook.guid" v-text="response.notebook.name"></span></p>
 			<button id="preview" class="btn" v-on="click: showPreview">Preview</button>
 		</div>
 		<div class="title_box">
