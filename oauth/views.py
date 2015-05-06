@@ -149,6 +149,10 @@ def import_note(request):
     except Exception as e:
         return redirect('/login/')
     client = get_evernote_client(token=token)
+    user_store = client.get_user_store()
+    user_info = user_store.getPublicUserInfo(user_store.getUser().username)
+    prefix = user_info.webApiUrlPrefix
+
     note_store = client.get_note_store()
     note_filter = NoteStore.NoteFilter()
     note_filter.notebookGuid = guid
@@ -159,13 +163,18 @@ def import_note(request):
         noteList = note_store.findNotes(token, note_filter, 0, 10)
         for n in noteList.notes:
             content = note_store.getNoteContent(token, n.guid)
-            print content
+            resources = []
+            if n.resources is not None:
+                for res in n.resources:
+                    resources.append({
+                        "url": "%s/res/%s" % (prefix, res.guid)
+                    })
             notes.append({
                 "title": n.title,
                 "note_id": n.guid,
                 "updated": n.updated,
                 "content": content,
-                "resources": []
+                "resources": resources
             })
 
     except Errors.EDAMUserException, edue:
