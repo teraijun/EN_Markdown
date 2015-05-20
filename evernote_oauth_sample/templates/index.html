@@ -9,7 +9,7 @@
 			<a class="auth" v-on="click: auth" v-attr="href: response.redirect_url" v-text="response.msg"></a>
 		</div>
 		<div class="items" v-show="response.status!='redirect'">
-			<p class="notebook_line">Notebook: 
+			<p class="notebook_line">Your Notebook is : 
 				<span class="notebook" v-attr="id: response.notebook.guid" v-text="response.notebook.name"></span>
 			</p>
 			<div class="import_box dropdown">

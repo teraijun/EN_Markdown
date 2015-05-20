@@ -28,14 +28,17 @@ import hashlib
 import binascii
 from PIL import Image
 import io
-import cStringIO
+import StringIO
+import pycurl
 
 sandbox = True
 
-if sandbox : 
-    link_to_en = 'https://sandbox.evernote.com/Home.action'
-else : 
-    link_to_en = 'https://www.evernote.com/Home.action'
+if sandbox:
+    base_url = 'https://sandbox.evernote.com'
+else:
+    base_url = 'https://www.evernote.com'
+
+link_to_en = base_url + '/Home.action'
 
 def get_evernote_client(token=None):
     if token:
@@ -157,18 +160,38 @@ def import_note(request):
     note_filter = NoteStore.NoteFilter()
     note_filter.notebookGuid = guid
     note_filter.order = NoteSortOrder.UPDATED
-    notes = []
 
+    search_spec = NoteStore.NotesMetadataResultSpec()
+    search_spec.includeAttributes = True;
+    search_spec.includeCreated = True;
+    search_spec.includeUpdated = True;
+    search_spec.includeTitle = True;
+
+    notes = []
     try :
-        noteList = note_store.findNotes(token, note_filter, 0, 10)
+        noteList = note_store.findNotesMetadata(token, note_filter, 0, 10, search_spec)
         for n in noteList.notes:
-            content = note_store.getNoteContent(token, n.guid)
+            url = base_url + '/note/' + n.guid
+            c = pycurl.Curl()
+            c.setopt(c.URL, url)
+            c.setopt(c.COOKIE, 'auth='+token)
+            c.setopt(c.VERBOSE, 1)
+            buf = StringIO.StringIO()
+            c.setopt(c.WRITEFUNCTION, buf.write)
+            c.perform()
+            content = buf.getvalue()
+            c.close()
+
             resources = []
-            if n.resources is not None:
-                for res in n.resources:
-                    resources.append({
-                        "url": "%s/res/%s" % (prefix, res.guid)
-                    })
+            # if n.resources is not None:
+            #     for res in n.resources:
+            #         re = note_store.getResource(res.guid, True, False, True, False)
+            #         resources.append({
+            #             "guid": res.guid,
+            #             "type": re.mime,
+            #             "name": re.attributes.fileName,
+            #             "url": "%sres/%s" % (prefix, res.guid),
+            #         })
             notes.append({
                 "title": n.title,
                 "note_id": n.guid,

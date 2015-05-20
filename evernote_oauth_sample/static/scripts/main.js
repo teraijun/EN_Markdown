@@ -208,17 +208,16 @@ function main(){
           var id = $(e.target).attr('id');
           var notes = _.filter(that.$data.notes, function(n){return n.note_id == id});
           if(notes.length > 0){
-            var title = notes[0].title;
-            this.$data.title = title;
-            var content = notes[0].content;
-            content = content.replace('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note>', '').replace('</en-note>', '');
-
+            var note = notes[0];
+            this.$data.title = note.title;
+            var content = note.content;
+            content = content.replace(/<div class="ennote">/, '').replace(/<\/div>$/, '');
             // optional options w/defaults
             var options = {
-                link_list:  false,    // render links as references, create link list as appendix
-                h1_setext:  true,     // underline h1 headers
-                h2_setext:  true,     // underline h2 headers
-                h_atx_suf:  false,    // header suffixes (###)
+                link_list:  true,    // render links as references, create link list as appendix
+                h1_setext:  false,     // underline h1 headers
+                h2_setext:  false,     // underline h2 headers
+                h_atx_suf:  true,    // header suffixes (###)
                 gfm_code:   "```",    // gfm code blocks
                 trim_code:  true,     // trim whitespace within <pre><code> blocks (full block, not per line)
                 li_bullet:  "*",      // list item bullet style
@@ -228,11 +227,11 @@ function main(){
                 emph_char:  "_",      // char used for em
                 gfm_del:    true,     // ~~strikeout~~ for <del>strikeout</del>
                 gfm_tbls:   true,     // markdown-extra tables
-                tbl_edges:  false,    // show side edges on tables
-                hash_lnks:  false,    // anchors w/hash hrefs as links
+                tbl_edges:  true,    // show side edges on tables
+                hash_lnks:  true,    // anchors w/hash hrefs as links
                 br_only:    false,    // avoid using "  " as line break indicator
                 col_pre:    "col ",   // column prefix to use when creating missing headers for tables
-                nbsp_spc:   false,    // convert &nbsp; entities in html to regular spaces
+                nbsp_spc:   true,    // convert &nbsp; entities in html to regular spaces
                 span_tags:  true,     // output spans (ambiguous) using html tags
                 div_tags:   true,     // output divs (ambiguous) using html tags
                 unsup_tags: {         // handling of unsupported tags, defined in terms of desired output style. if not listed, output = outerHTML
@@ -254,8 +253,12 @@ function main(){
             };
             var reMarker = new reMarked(options);
             var markdown = reMarker.render(content);
+            // _.each(note.resources, function(r, i){
+            //   var name = r.name || 'Untitle_'+i;
+            //   markdown = markdown.replace(/<en-media[^>]+>.+<\/en-media>/, '!['+name+']('+r.url+' "'+name+'")');
+            // });
             this.$data.body = markdown;
-            $('#title').val(title); 
+            $('#title').val(this.$data.title); 
             $('#input_area').val(markdown);
           }
         }
