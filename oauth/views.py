@@ -30,6 +30,7 @@ from PIL import Image
 import io
 import StringIO
 import pycurl
+import re
 
 sandbox = True
 
@@ -144,6 +145,35 @@ def get_info(request):
 def reset(request):
     return redirect('/')
 
+def import_note_content(request):
+    try :
+        token = request.COOKIES['access_token']
+        note_id = request.POST['note_id']
+    except Exception as e:
+        return redirect('/login/')
+    url = base_url + '/note/' + note_id
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.COOKIE, 'auth='+token)
+    c.setopt(c.VERBOSE, 1)
+    buf = StringIO.StringIO()
+    c.setopt(c.WRITEFUNCTION, buf.write)
+    c.perform()
+    content = buf.getvalue()
+    c.close()
+
+    # resources = []
+    r = re.compile('<img name="([^"]+)" src="([^"]+)"[^>]+>')
+    resources = r.findall(content)
+
+    return json_response_with_headers({
+        'status': 'success',
+        'msg': 'content',
+        'note_id': note_id,
+        'content': content,
+        'resources': resources
+    })
+
 
 def import_note(request):
     try :
@@ -152,10 +182,6 @@ def import_note(request):
     except Exception as e:
         return redirect('/login/')
     client = get_evernote_client(token=token)
-    user_store = client.get_user_store()
-    user_info = user_store.getPublicUserInfo(user_store.getUser().username)
-    prefix = user_info.webApiUrlPrefix
-
     note_store = client.get_note_store()
     note_filter = NoteStore.NoteFilter()
     note_filter.notebookGuid = guid
@@ -171,33 +197,10 @@ def import_note(request):
     try :
         noteList = note_store.findNotesMetadata(token, note_filter, 0, 10, search_spec)
         for n in noteList.notes:
-            url = base_url + '/note/' + n.guid
-            c = pycurl.Curl()
-            c.setopt(c.URL, url)
-            c.setopt(c.COOKIE, 'auth='+token)
-            c.setopt(c.VERBOSE, 1)
-            buf = StringIO.StringIO()
-            c.setopt(c.WRITEFUNCTION, buf.write)
-            c.perform()
-            content = buf.getvalue()
-            c.close()
-
-            resources = []
-            # if n.resources is not None:
-            #     for res in n.resources:
-            #         re = note_store.getResource(res.guid, True, False, True, False)
-            #         resources.append({
-            #             "guid": res.guid,
-            #             "type": re.mime,
-            #             "name": re.attributes.fileName,
-            #             "url": "%sres/%s" % (prefix, res.guid),
-            #         })
             notes.append({
                 "title": n.title,
                 "note_id": n.guid,
-                "updated": n.updated,
-                "content": content,
-                "resources": resources
+                "updated": n.updated
             })
 
     except Errors.EDAMUserException, edue:
@@ -217,7 +220,6 @@ def import_note(request):
         'msg': 'notes',
         'notes': notes,
     })
-
 
 def note(request):
     request.token = request.COOKIES['access_token']
@@ -270,7 +272,7 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
         body += "<br />" * 2
         for res in resources:
             src = res['src']
-            file = cStringIO.StringIO(urllib.urlopen(src).read())
+            file = StringIO.StringIO(urllib.urlopen(src).read())
             img = Image.open(file)
             # img = Image.open(file).resize((120,120))
             output = io.BytesIO()

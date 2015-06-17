@@ -15,7 +15,7 @@
 			<div class="import_box dropdown">
 				<button id="import" class="btn dropdown-toggle" v-on="click: import" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="true">Import Note</button>
 				<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-					<li v-repeat="n: notes"><a v-text="n.title" href="#" v-attr="id: n.note_id" v-on="click: insert_to_textarea" class="note_list"></a></li>
+					<li v-repeat="n: notes"><a v-text="n.title" href="#" v-attr="id: n.note_id" v-on="click: import_content" class="note_list"></a></li>
 				</ul>
 			</div>
 			<button id="preview" class="btn" v-on="click: showPreview">Preview</button>
