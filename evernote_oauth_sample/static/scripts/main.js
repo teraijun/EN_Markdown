@@ -215,10 +215,18 @@ function main(){
             dataType: "json",
             data: {note_id: id},
             success: function(res) {
+              _.each(res.resources, function(r){
+                var obj = {id:r.id, name: r.name, src:r.src, type:r.type, size:r.size};
+                utils.attached_files.push(obj);
+              });
+              if(window.localStorage){
+                window.localStorage.setItem('files', JSON.stringify(utils.attached_files));
+              }
               that.insert_to_textarea(res);
             }
           });
         },
+
         insert_to_textarea: function(data){
           var that = this;
           var notes = _.filter(that.$data.notes, function(n){return n.note_id == data.note_id});
