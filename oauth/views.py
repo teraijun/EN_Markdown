@@ -30,6 +30,9 @@ from PIL import Image
 import io
 import StringIO
 import pycurl
+import re
+import base64
+from datetime import date
 
 sandbox = True
 
@@ -141,6 +144,50 @@ def get_info(request):
 def reset(request):
     return redirect('/')
 
+def import_note_content(request):
+    try :
+        token = request.COOKIES['access_token']
+        note_id = request.POST['note_id']
+    except Exception as e:
+        return redirect('/login/')
+    url = base_url + '/note/' + note_id
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.COOKIE, 'auth='+token)
+    c.setopt(c.VERBOSE, 1)
+    buf = StringIO.StringIO()
+    c.setopt(c.WRITEFUNCTION, buf.write)
+    c.perform()
+    content = buf.getvalue()
+    c.close()
+
+    resources = []
+    r = re.compile('<img[^>]+>')
+    imageTags = r.findall(content)
+
+    for i in imageTags:
+        r2 = re.compile('src="(.+?res\/(.+?)\.png[^"]+)"')
+        resource = r2.search(i)
+        name = resource.group(2)
+        src = resource.group(1) + '&auth=' + token
+        id = name+'_'+str(date.today().year)
+        resources.append({
+            'id': id,
+            'name': name,
+            'src': encodeImg(src)['src'],
+            'type': encodeImg(src)['type'],
+            'size': encodeImg(src)['size']
+        })
+        insert = '\n !['+name+']('+id+' "'+name+'") \n'
+        content = content.replace(i, insert)
+
+    return json_response_with_headers({
+        'status': 'success',
+        'msg': 'content',
+        'note_id': note_id,
+        'content': content,
+        'resources': resources
+    })
 
 def import_note(request):
     try :
@@ -200,7 +247,6 @@ def import_note(request):
         'notes': notes,
     })
 
-
 def note(request):
     request.token = request.COOKIES['access_token']
 
@@ -252,7 +298,7 @@ def make_note(client, noteTitle, noteBody, resources=[], guid=''):
         body += "<br />" * 2
         for res in resources:
             src = res['src']
-            file = cStringIO.StringIO(urllib.urlopen(src).read())
+            file = StringIO.StringIO(urllib.urlopen(src).read())
             img = Image.open(file)
             # img = Image.open(file).resize((120,120))
             output = io.BytesIO()
@@ -317,3 +363,25 @@ def is_localhost():
 
 def make_unicode(value):
     value = unicode(value, "utf-8")
+
+def encodeImg(src):
+    try:
+        image = urllib.urlopen(src)
+        http_message = image.info()
+        image_type = ''
+        if 'png' in http_message.type:
+            image_type = 'png'
+        elif 'jpeg' in http_message.type:
+            image_type = 'jpg'
+        elif 'gif' in http_message.type:
+            image_type = 'gif'
+        image_64 = base64.encodestring(image.read())
+        src = 'data:image/' + image_type + ';base64,' + image_64
+        return {
+            'src': src,
+            'type': http_message.type,
+            'size': len(src)
+        }
+    except Exception as e:
+        print e
+        return src

@@ -142,9 +142,6 @@ INSTALLED_APPS = (
 EN_CONSUMER_KEY = 'junterai-0563'
 EN_CONSUMER_SECRET = '2af8adbdb0bd2f7b'
 
-# EN_CONSUMER_KEY = 'jun-terai'
-# EN_CONSUMER_SECRET = 'b5968582c8c9f5ad'
-
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.

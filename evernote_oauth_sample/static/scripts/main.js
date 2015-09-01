@@ -203,15 +203,38 @@ function main(){
             }
           });
         },
-        insert_to_textarea: function(e){
+        import_content: function(e){
           var that = this;
           var id = $(e.target).attr('id');
-          var notes = _.filter(that.$data.notes, function(n){return n.note_id == id});
+          $.ajax({
+            type: "POST",
+            beforeSend: function(xhr, settings){
+              xhr.setRequestHeader("X-CSRFToken", utils.getCookie('csrftoken'));
+            },
+            url: "/content/",
+            dataType: "json",
+            data: {note_id: id},
+            success: function(res) {
+              _.each(res.resources, function(r){
+                var obj = {id:r.id, name: r.name, src:r.src, type:r.type, size:r.size};
+                utils.attached_files.push(obj);
+              });
+              if(window.localStorage){
+                window.localStorage.setItem('files', JSON.stringify(utils.attached_files));
+              }
+              that.insert_to_textarea(res);
+            }
+          });
+        },
+
+        insert_to_textarea: function(data){
+          var that = this;
+          var notes = _.filter(that.$data.notes, function(n){return n.note_id == data.note_id});
           if(notes.length > 0){
             var note = notes[0];
             this.$data.title = note.title;
-            var content = note.content;
-            content = content.replace(/<div class="ennote">/, '').replace(/<\/div>$/, '');
+            var content = data.content.replace(/<div class="ennote">/, '').replace(/<\/div>$/, '');
+
             // optional options w/defaults
             var options = {
                 link_list:  true,    // render links as references, create link list as appendix
@@ -253,10 +276,6 @@ function main(){
             };
             var reMarker = new reMarked(options);
             var markdown = reMarker.render(content);
-            // _.each(note.resources, function(r, i){
-            //   var name = r.name || 'Untitle_'+i;
-            //   markdown = markdown.replace(/<en-media[^>]+>.+<\/en-media>/, '!['+name+']('+r.url+' "'+name+'")');
-            // });
             this.$data.body = markdown;
             $('#title').val(this.$data.title); 
             $('#input_area').val(markdown);
