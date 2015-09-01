@@ -164,32 +164,34 @@ def import_note_content(request):
     content = buf.getvalue()
     c.close()
 
-    resources = []
-    r = re.compile('<img[^>]+>')
-    imageTags = r.findall(content)
 
-    for i in imageTags:
-        r2 = re.compile('src="(.+?res\/(.+?)\.png[^"]+)"')
-        resource = r2.search(i)
-        name = resource.group(2)
-        src = resource.group(1) + '&auth=' + token
-        id = name+'_'+str(date.today().year)
-        resources.append({
-            'id': id,
-            'name': name,
-            'src': encodeImg(src)['src'],
-            'type': encodeImg(src)['type'],
-            'size': encodeImg(src)['size']
-        })
-        insert = '\n !['+name+']('+id+' "'+name+'") \n'
-        content = content.replace(i, insert)
+
+
+    # resources = []
+    # r = re.compile('<img[^>]+>')
+    # imageTags = r.findall(content)
+    # for i in imageTags:
+    #     r2 = re.compile('src="(.+?res\/(.+?)\.png[^"]+)"')
+    #     resource = r2.search(i)
+    #     name = resource.group(2)
+    #     src = resource.group(1) + '&auth=' + token
+    #     id = name+'_'+str(date.today().year)
+    #     resources.append({
+    #         'id': id,
+    #         'name': name,
+    #         'src': encodeImg(src)['src'],
+    #         'type': encodeImg(src)['type'],
+    #         'size': encodeImg(src)['size']
+    #     })
+    #     insert = '\n !['+name+']('+id+' "'+name+'") \n'
+    #     content = content.replace(i, insert)
 
     return json_response_with_headers({
         'status': 'success',
         'msg': 'content',
         'note_id': note_id,
         'content': content,
-        'resources': resources
+        # 'resources': resources
     })
 
 def import_note(request):

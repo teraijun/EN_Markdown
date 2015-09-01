@@ -240,7 +240,7 @@ function main(){
                 link_list:  true,    // render links as references, create link list as appendix
                 h1_setext:  false,     // underline h1 headers
                 h2_setext:  false,     // underline h2 headers
-                h_atx_suf:  true,    // header suffixes (###)
+                h_atx_suf:  false,    // header suffixes (###)
                 gfm_code:   "```",    // gfm code blocks
                 trim_code:  true,     // trim whitespace within <pre><code> blocks (full block, not per line)
                 li_bullet:  "*",      // list item bullet style

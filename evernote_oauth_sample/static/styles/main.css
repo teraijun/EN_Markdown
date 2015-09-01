@@ -11,6 +11,11 @@ body {
   padding-bottom: 20px;
 }
 
+.jumbotron h1, .jumbotron .h1 {
+    font-size: 42px;
+    margin: 10px 0 5px
+}
+
 /* Everything but the jumbotron gets side spacing for mobile first views */
 .header,
 .marketing,
@@ -119,7 +124,7 @@ div#content{
 .auth{
   display: block;
   font-size: 20px;
-  margin: 15px 0;
+  margin: 10px 0;
 }
 .items{
   text-align: right;
