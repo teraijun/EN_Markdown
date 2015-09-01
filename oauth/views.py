@@ -71,9 +71,6 @@ def callback(request):
         username = user.username
         shard_id = user.shardId
         privilege = user.privilege
-
-#        request.session['shard_id'] = shard_id
-
         u = User(
             user_id=user.id,
             access_token=access_token)
@@ -152,10 +149,6 @@ def import_note(request):
     except Exception as e:
         return redirect('/login/')
     client = get_evernote_client(token=token)
-    user_store = client.get_user_store()
-    user_info = user_store.getPublicUserInfo(user_store.getUser().username)
-    prefix = user_info.webApiUrlPrefix
-
     note_store = client.get_note_store()
     note_filter = NoteStore.NoteFilter()
     note_filter.notebookGuid = guid
@@ -182,22 +175,11 @@ def import_note(request):
             content = buf.getvalue()
             c.close()
 
-            resources = []
-            # if n.resources is not None:
-            #     for res in n.resources:
-            #         re = note_store.getResource(res.guid, True, False, True, False)
-            #         resources.append({
-            #             "guid": res.guid,
-            #             "type": re.mime,
-            #             "name": re.attributes.fileName,
-            #             "url": "%sres/%s" % (prefix, res.guid),
-            #         })
             notes.append({
                 "title": n.title,
                 "note_id": n.guid,
                 "updated": n.updated,
                 "content": content,
-                "resources": resources
             })
 
     except Errors.EDAMUserException, edue:
